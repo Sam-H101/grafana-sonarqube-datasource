@@ -1,0 +1,73 @@
+name: Integration tests
+
+# Backend tests against a live SonarQube with seeded projects, started from
+# the same docker-compose.yaml as the dev stack, and against the public
+# projects of SonarQube Cloud.
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: Go integration tests against ${{ matrix.sonarqube }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        # The current Community Build and the 9.9 long-term release, which
+        # many self-hosted installations still run.
+        sonarqube:
+          - sonarqube:26.11.0.134175-community
+          - sonarqube:9.9-community
+    env:
+      SONARQUBE_IMAGE: ${{ matrix.sonarqube }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Start SonarQube and seed it
+        run: |
+          docker compose up -d --wait sonarqube
+          docker compose up seed
+          docker compose run --rm --no-deps -T --entrypoint cat seed /seed-out/token > "$RUNNER_TEMP/sonar-token"
+
+      - name: Run integration tests
+        env:
+          SONAR_URL: http://localhost:9000
+          SONAR_TOKEN_FILE: ${{ runner.temp }}/sonar-token
+        run: go test -tags integration -race -count=1 -v ./tests/integration/...
+
+      # sonarcloud.io is a third party: a failure here is reported but does
+      # not fail the build.
+      - name: Run the SonarQube Cloud tests (live, anonymous)
+        if: ${{ !startsWith(matrix.sonarqube, 'sonarqube:9.') }}
+        continue-on-error: true
+        env:
+          SONAR_URL: http://localhost:9000
+          SONAR_TOKEN_FILE: ${{ runner.temp }}/sonar-token
+          SONARCLOUD_TESTS: '1'
+        run: go test -tags integration -count=1 -v -run TestCloud ./tests/integration/...
+
+      - name: SonarQube logs
+        if: failure()
+        run: docker compose logs sonarqube seed | tail -n 300
+
+      - name: Stop SonarQube
+        if: always()
+        run: docker compose down -v

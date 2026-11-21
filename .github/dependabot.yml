@@ -1,0 +1,78 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    # Wait 5 days before updating to help circumvent supply chain attacks
+    cooldown:
+      default-days: 5
+      # Exclude plugin-e2e to prevent false positives with canary e2e tests
+      exclude:
+        - '@grafana/plugin-e2e'
+    open-pull-requests-limit: 5
+    ignore:
+      # typescript-eslint supports TypeScript below 6.1 only.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+      # Keep the types on the Node 24 runtime used to build.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+      # eslint-plugin-react (needed by @grafana/eslint-config) supports ESLint 9
+      # at most.
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      # @grafana/eslint-config 10 uses rule options removed in @stylistic 6.
+      - dependency-name: '@stylistic/eslint-plugin'
+        update-types: ['version-update:semver-major']
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+    groups:
+      unit-test:
+        patterns:
+          - '@testing-library/*'
+          - 'jest*'
+          - '@types/jest'
+      eslint:
+        patterns:
+          - '@grafana/eslint-config'
+          - 'eslint*'
+          - '@typescript-eslint/*'
+          - '@stylistic/*'
+      grafana:
+        patterns:
+          - '@grafana/*'
+        dependency-type: 'production'
+        update-types:
+          - 'minor'
+          - 'patch'
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    commit-message:
+      prefix: 'chore(ci)'
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: 'gomod'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-name: 'github.com/grafana/grafana-plugin-sdk-go'
+        dependency-type: 'all'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'

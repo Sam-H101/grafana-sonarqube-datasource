@@ -1,0 +1,468 @@
+{
+  "uid": "sonarqube-overview",
+  "title": "SonarQube overview",
+  "tags": [
+    "sonarqube"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "timezone": "utc",
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "refresh": "",
+  "templating": {
+    "list": [
+      {
+        "name": "project",
+        "label": "Project",
+        "type": "query",
+        "datasource": {
+          "type": "smartquinoa1504-sonarqube-datasource",
+          "uid": "sonarqube-dev"
+        },
+        "query": {
+          "list": "projects",
+          "refId": "variable"
+        },
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "sort": 1
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "name": "Releases and quality gate changes",
+        "datasource": {
+          "type": "smartquinoa1504-sonarqube-datasource",
+          "uid": "sonarqube-dev"
+        },
+        "enable": true,
+        "iconColor": "orange",
+        "target": {
+          "refId": "Anno",
+          "queryType": "analyses",
+          "projects": [
+            "$project"
+          ],
+          "categories": [
+            "VERSION",
+            "QUALITY_GATE"
+          ]
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Projects",
+      "type": "table",
+      "datasource": {
+        "type": "smartquinoa1504-sonarqube-datasource",
+        "uid": "sonarqube-dev"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 7
+      },
+      "targets": [
+        {
+          "queryType": "measures",
+          "projects": [
+            "$project"
+          ],
+          "metrics": [
+            "alert_status",
+            "coverage",
+            "bugs",
+            "vulnerabilities",
+            "code_smells",
+            "security_hotspots",
+            "reliability_rating",
+            "security_rating",
+            "ncloc"
+          ],
+          "refId": "A",
+          "datasource": {
+            "type": "smartquinoa1504-sonarqube-datasource",
+            "uid": "sonarqube-dev"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(Key)$"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(Quality Gate Status|.* Rating)$"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Coverage"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 50
+                    },
+                    {
+                      "color": "green",
+                      "value": 80
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "title": "Coverage",
+      "type": "timeseries",
+      "datasource": {
+        "type": "smartquinoa1504-sonarqube-datasource",
+        "uid": "sonarqube-dev"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "queryType": "measureHistory",
+          "projects": [
+            "$project"
+          ],
+          "metrics": [
+            "coverage"
+          ],
+          "refId": "A",
+          "datasource": {
+            "type": "smartquinoa1504-sonarqube-datasource",
+            "uid": "sonarqube-dev"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "showPoints": "always",
+            "lineInterpolation": "stepAfter"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "title": "Bugs and vulnerabilities",
+      "type": "timeseries",
+      "datasource": {
+        "type": "smartquinoa1504-sonarqube-datasource",
+        "uid": "sonarqube-dev"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "queryType": "measureHistory",
+          "projects": [
+            "$project"
+          ],
+          "metrics": [
+            "bugs",
+            "vulnerabilities"
+          ],
+          "refId": "A",
+          "datasource": {
+            "type": "smartquinoa1504-sonarqube-datasource",
+            "uid": "sonarqube-dev"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "custom": {
+            "showPoints": "always",
+            "lineInterpolation": "stepAfter"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "title": "Open issues by severity",
+      "type": "barchart",
+      "datasource": {
+        "type": "smartquinoa1504-sonarqube-datasource",
+        "uid": "sonarqube-dev"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "queryType": "issueCounts",
+          "projects": [
+            "$project"
+          ],
+          "groupBy": "severities",
+          "resolution": "open",
+          "refId": "A",
+          "datasource": {
+            "type": "smartquinoa1504-sonarqube-datasource",
+            "uid": "sonarqube-dev"
+          }
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "legend": {
+          "showLegend": false
+        },
+        "xField": "Severity"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Open issues by type",
+      "type": "piechart",
+      "datasource": {
+        "type": "smartquinoa1504-sonarqube-datasource",
+        "uid": "sonarqube-dev"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 15,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "queryType": "issueCounts",
+          "projects": [
+            "$project"
+          ],
+          "groupBy": "types",
+          "resolution": "open",
+          "refId": "A",
+          "datasource": {
+            "type": "smartquinoa1504-sonarqube-datasource",
+            "uid": "sonarqube-dev"
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": true,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "legend": {
+          "showLegend": true,
+          "placement": "bottom",
+          "values": [
+            "value"
+          ]
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Releases and quality gate changes",
+      "type": "table",
+      "datasource": {
+        "type": "smartquinoa1504-sonarqube-datasource",
+        "uid": "sonarqube-dev"
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 15,
+        "w": 10,
+        "h": 8
+      },
+      "targets": [
+        {
+          "queryType": "analyses",
+          "projects": [
+            "$project"
+          ],
+          "categories": [
+            "VERSION",
+            "QUALITY_GATE"
+          ],
+          "refId": "A",
+          "datasource": {
+            "type": "smartquinoa1504-sonarqube-datasource",
+            "uid": "sonarqube-dev"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(Revision|Project key|Categories)$"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "title": "Newest open issues",
+      "type": "table",
+      "datasource": {
+        "type": "smartquinoa1504-sonarqube-datasource",
+        "uid": "sonarqube-dev"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 24,
+        "h": 10
+      },
+      "targets": [
+        {
+          "queryType": "issues",
+          "projects": [
+            "$project"
+          ],
+          "resolution": "open",
+          "limit": 50,
+          "refId": "A",
+          "datasource": {
+            "type": "smartquinoa1504-sonarqube-datasource",
+            "uid": "sonarqube-dev"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^(Key|Link|Updated|Author|Assignee|Effort|Tags)$"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Severity"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Message"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 480
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

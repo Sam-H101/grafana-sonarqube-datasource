@@ -1,0 +1,46 @@
+apiVersion: 1
+
+# An example rule for the dev stack: it fires for the Legacy Billing sample
+# project, whose coverage is about 10%.
+groups:
+  - orgId: 1
+    name: sonarqube-examples
+    folder: SonarQube
+    interval: 1m
+    rules:
+      - uid: sonarqube-low-coverage
+        title: Coverage below 50%
+        condition: C
+        for: 0s
+        noDataState: NoData
+        execErrState: Error
+        annotations:
+          summary: 'Coverage of {{ $labels.project }} is below 50%.'
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 7776000
+              to: 0
+            datasourceUid: sonarqube-dev
+            model:
+              refId: A
+              queryType: measureHistory
+              projects: ['demo:legacy-billing', 'demo:shop-api']
+              metrics: ['coverage']
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [50]

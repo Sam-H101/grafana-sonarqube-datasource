@@ -1,0 +1,196 @@
+{
+ "measures": [
+  {
+   "metric": "alert_status",
+   "value": "ERROR",
+   "component": "demo:legacy-billing"
+  },
+  {
+   "metric": "alert_status",
+   "value": "OK",
+   "component": "demo:shop-api"
+  },
+  {
+   "metric": "alert_status",
+   "value": "ERROR",
+   "component": "demo:shop-web"
+  },
+  {
+   "metric": "bugs",
+   "value": "9",
+   "component": "demo:legacy-billing",
+   "bestValue": false
+  },
+  {
+   "metric": "bugs",
+   "value": "1",
+   "component": "demo:shop-api",
+   "bestValue": false
+  },
+  {
+   "metric": "bugs",
+   "value": "4",
+   "component": "demo:shop-web",
+   "bestValue": false
+  },
+  {
+   "metric": "code_smells",
+   "value": "1",
+   "component": "demo:legacy-billing",
+   "bestValue": false
+  },
+  {
+   "metric": "code_smells",
+   "value": "1",
+   "component": "demo:shop-api",
+   "bestValue": false
+  },
+  {
+   "metric": "code_smells",
+   "value": "1",
+   "component": "demo:shop-web",
+   "bestValue": false
+  },
+  {
+   "metric": "coverage",
+   "value": "9.9",
+   "component": "demo:legacy-billing",
+   "bestValue": false
+  },
+  {
+   "metric": "coverage",
+   "value": "80.5",
+   "component": "demo:shop-api",
+   "bestValue": false
+  },
+  {
+   "metric": "coverage",
+   "value": "51.1",
+   "component": "demo:shop-web",
+   "bestValue": false
+  },
+  {
+   "metric": "duplicated_lines_density",
+   "value": "0.0",
+   "component": "demo:legacy-billing",
+   "bestValue": true
+  },
+  {
+   "metric": "duplicated_lines_density",
+   "value": "0.0",
+   "component": "demo:shop-api",
+   "bestValue": true
+  },
+  {
+   "metric": "duplicated_lines_density",
+   "value": "0.0",
+   "component": "demo:shop-web",
+   "bestValue": true
+  },
+  {
+   "metric": "ncloc",
+   "value": "185",
+   "component": "demo:legacy-billing"
+  },
+  {
+   "metric": "ncloc",
+   "value": "36",
+   "component": "demo:shop-api"
+  },
+  {
+   "metric": "ncloc",
+   "value": "117",
+   "component": "demo:shop-web"
+  },
+  {
+   "metric": "reliability_rating",
+   "value": "3.0",
+   "component": "demo:legacy-billing",
+   "bestValue": false
+  },
+  {
+   "metric": "reliability_rating",
+   "value": "3.0",
+   "component": "demo:shop-api",
+   "bestValue": false
+  },
+  {
+   "metric": "reliability_rating",
+   "value": "3.0",
+   "component": "demo:shop-web",
+   "bestValue": false
+  },
+  {
+   "metric": "security_hotspots",
+   "value": "0",
+   "component": "demo:legacy-billing",
+   "bestValue": true
+  },
+  {
+   "metric": "security_hotspots",
+   "value": "0",
+   "component": "demo:shop-api",
+   "bestValue": true
+  },
+  {
+   "metric": "security_hotspots",
+   "value": "0",
+   "component": "demo:shop-web",
+   "bestValue": true
+  },
+  {
+   "metric": "software_quality_reliability_issues",
+   "value": "9",
+   "component": "demo:legacy-billing",
+   "bestValue": false
+  },
+  {
+   "metric": "software_quality_reliability_issues",
+   "value": "1",
+   "component": "demo:shop-api",
+   "bestValue": false
+  },
+  {
+   "metric": "software_quality_reliability_issues",
+   "value": "4",
+   "component": "demo:shop-web",
+   "bestValue": false
+  },
+  {
+   "metric": "sqale_rating",
+   "value": "1.0",
+   "component": "demo:legacy-billing",
+   "bestValue": true
+  },
+  {
+   "metric": "sqale_rating",
+   "value": "1.0",
+   "component": "demo:shop-api",
+   "bestValue": true
+  },
+  {
+   "metric": "sqale_rating",
+   "value": "1.0",
+   "component": "demo:shop-web",
+   "bestValue": true
+  },
+  {
+   "metric": "vulnerabilities",
+   "value": "10",
+   "component": "demo:legacy-billing",
+   "bestValue": false
+  },
+  {
+   "metric": "vulnerabilities",
+   "value": "0",
+   "component": "demo:shop-api",
+   "bestValue": true
+  },
+  {
+   "metric": "vulnerabilities",
+   "value": "6",
+   "component": "demo:shop-web",
+   "bestValue": false
+  }
+ ]
+}

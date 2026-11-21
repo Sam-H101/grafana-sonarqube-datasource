@@ -1,0 +1,56 @@
+{
+ "measures": [
+  {
+   "metric": "alert_status",
+   "value": "ERROR",
+   "component": "SonarSource_echoes-react",
+   "branchId": "2c191d29-a65c-4134-ba5b-cbda7b185a2e"
+  },
+  {
+   "metric": "alert_status",
+   "value": "OK",
+   "component": "SonarSource_ci-github-actions",
+   "branchId": "e08b3e29-dd4f-427e-bdb6-4bba5821946d"
+  },
+  {
+   "metric": "bugs",
+   "value": "0",
+   "component": "SonarSource_echoes-react",
+   "bestValue": true,
+   "branchId": "2c191d29-a65c-4134-ba5b-cbda7b185a2e"
+  },
+  {
+   "metric": "bugs",
+   "value": "0",
+   "component": "SonarSource_ci-github-actions",
+   "bestValue": true,
+   "branchId": "e08b3e29-dd4f-427e-bdb6-4bba5821946d"
+  },
+  {
+   "metric": "coverage",
+   "value": "96.4",
+   "component": "SonarSource_echoes-react",
+   "bestValue": false,
+   "branchId": "2c191d29-a65c-4134-ba5b-cbda7b185a2e"
+  },
+  {
+   "metric": "coverage",
+   "value": "98.7",
+   "component": "SonarSource_ci-github-actions",
+   "bestValue": false,
+   "branchId": "e08b3e29-dd4f-427e-bdb6-4bba5821946d"
+  },
+  {
+   "metric": "ncloc",
+   "value": "27176",
+   "component": "SonarSource_echoes-react",
+   "branchId": "2c191d29-a65c-4134-ba5b-cbda7b185a2e"
+  },
+  {
+   "metric": "ncloc",
+   "value": "5468",
+   "component": "SonarSource_ci-github-actions",
+   "branchId": "e08b3e29-dd4f-427e-bdb6-4bba5821946d"
+  }
+ ]
+}

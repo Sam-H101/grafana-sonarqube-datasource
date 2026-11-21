@@ -1,0 +1,26 @@
+{
+ "branches": [
+  {
+   "name": "main",
+   "isMain": true,
+   "type": "LONG",
+   "status": {
+    "qualityGateStatus": "ERROR",
+    "bugs": 0,
+    "vulnerabilities": 0,
+    "codeSmells": 0
+   },
+   "analysisDate": "2026-11-21T03:05:11+0000",
+   "commit": {
+    "sha": "85a963941bd88dd4df867bd210a60cb8d16b4625",
+    "author": {
+     "name": "sonar-platform-bot[bot]"
+    },
+    "date": "2026-11-19T09:55:50+0000",
+    "message": "BUILD-13164 Replace third-party GitHub Actions with StepSecurity maintained actions (#817)"
+   },
+   "branchId": "2c191d29-a65c-4134-ba5b-cbda7b185a2e",
+   "branchUuidV1": "AZhXChWGPJHPpEtuNq32"
+  }
+ ]
+}

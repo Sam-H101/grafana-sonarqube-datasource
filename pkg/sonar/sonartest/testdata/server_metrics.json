@@ -1,0 +1,185 @@
+{
+ "metrics": [
+  {
+   "id": "df5d6a76-deca-4341-885b-176cf7de4da1",
+   "key": "bugs",
+   "type": "INT",
+   "name": "Bugs",
+   "description": "Bugs",
+   "domain": "Reliability",
+   "direction": -1,
+   "qualitative": false,
+   "hidden": false
+  },
+  {
+   "id": "5585cb67-709f-4773-95ec-eccf9d07fc55",
+   "key": "code_smells",
+   "type": "INT",
+   "name": "Code Smells",
+   "description": "Code Smells",
+   "domain": "Maintainability",
+   "direction": -1,
+   "qualitative": false,
+   "hidden": false
+  },
+  {
+   "id": "c7bffa83-d3c4-4176-bfd0-f4e74c3928f1",
+   "key": "coverage",
+   "type": "PERCENT",
+   "name": "Coverage",
+   "description": "Coverage by tests",
+   "domain": "Coverage",
+   "direction": 1,
+   "qualitative": true,
+   "hidden": false,
+   "decimalScale": 1
+  },
+  {
+   "id": "d2d60d7a-0ef1-49cf-899f-dfb9b81f08cb",
+   "key": "new_coverage",
+   "type": "PERCENT",
+   "name": "Coverage on New Code",
+   "description": "Coverage of new/changed code",
+   "domain": "Coverage",
+   "direction": 1,
+   "qualitative": true,
+   "hidden": false,
+   "decimalScale": 1
+  },
+  {
+   "id": "f03c7b0d-f705-47e9-834f-238d92464d51",
+   "key": "last_commit_date",
+   "type": "MILLISEC",
+   "name": "Date of Last Commit",
+   "domain": "SCM",
+   "direction": 0,
+   "qualitative": false,
+   "hidden": true
+  },
+  {
+   "id": "39c1c96d-170a-49df-941a-34cf844275be",
+   "key": "duplicated_lines_density",
+   "type": "PERCENT",
+   "name": "Duplicated Lines (%)",
+   "description": "Duplicated lines balanced by statements",
+   "domain": "Duplications",
+   "direction": -1,
+   "qualitative": true,
+   "hidden": false,
+   "decimalScale": 1
+  },
+  {
+   "id": "b41733cf-d713-4138-ab64-ca050b7a482e",
+   "key": "ncloc",
+   "type": "INT",
+   "name": "Lines of Code",
+   "description": "Non commenting lines of code",
+   "domain": "Size",
+   "direction": -1,
+   "qualitative": false,
+   "hidden": false
+  },
+  {
+   "id": "708fbcad-0845-48c7-a778-1c65e81ce80c",
+   "key": "ncloc_language_distribution",
+   "type": "DATA",
+   "name": "Lines of Code Per Language",
+   "description": "Non Commenting Lines of Code Distributed By Language",
+   "domain": "Size",
+   "direction": -1,
+   "qualitative": false,
+   "hidden": false
+  },
+  {
+   "id": "7531ca73-f82e-4afe-b0c9-4dcd9d2a9870",
+   "key": "sqale_rating",
+   "type": "RATING",
+   "name": "Maintainability Rating",
+   "description": "A-to-E rating based on the technical debt ratio",
+   "domain": "Maintainability",
+   "direction": -1,
+   "qualitative": true,
+   "hidden": false
+  },
+  {
+   "id": "30f9dbcb-f57c-4646-afae-40e9cf802b9d",
+   "key": "quality_gate_details",
+   "type": "DATA",
+   "name": "Quality Gate Details",
+   "description": "The project detailed status with regard to its quality gate",
+   "domain": "General",
+   "direction": 0,
+   "qualitative": false,
+   "hidden": false
+  },
+  {
+   "id": "62f7a3d0-1844-495a-a4b7-65cc2bacf54e",
+   "key": "alert_status",
+   "type": "LEVEL",
+   "name": "Quality Gate Status",
+   "description": "The project status with regard to its quality gate.",
+   "domain": "Releasability",
+   "direction": 1,
+   "qualitative": true,
+   "hidden": false
+  },
+  {
+   "id": "71bed21d-6cad-4ecc-989f-dd45014331f5",
+   "key": "reliability_rating",
+   "type": "RATING",
+   "name": "Reliability Rating",
+   "description": "Reliability rating",
+   "domain": "Reliability",
+   "direction": -1,
+   "qualitative": true,
+   "hidden": false
+  },
+  {
+   "id": "b17b7f59-106e-4e69-90c6-4c6aa470fa6e",
+   "key": "security_hotspots",
+   "type": "INT",
+   "name": "Security Hotspots",
+   "description": "Security Hotspots",
+   "domain": "SecurityReview",
+   "direction": -1,
+   "qualitative": false,
+   "hidden": false
+  },
+  {
+   "id": "38bd15f1-80b6-4d17-b767-fe58952798a4",
+   "key": "security_rating",
+   "type": "RATING",
+   "name": "Security Rating",
+   "description": "Security rating",
+   "domain": "Security",
+   "direction": -1,
+   "qualitative": true,
+   "hidden": false
+  },
+  {
+   "id": "4d5de297-da3f-4bb9-92c6-5dfad0e1385f",
+   "key": "sqale_index",
+   "type": "WORK_DUR",
+   "name": "Technical Debt",
+   "description": "Total effort (in minutes) to fix all the issues on the component and therefore to comply to all the requirements.",
+   "domain": "Maintainability",
+   "direction": -1,
+   "qualitative": true,
+   "hidden": false
+  },
+  {
+   "id": "4b80db31-621e-410b-9d71-6c1902e35aa0",
+   "key": "vulnerabilities",
+   "type": "INT",
+   "name": "Vulnerabilities",
+   "description": "Vulnerabilities",
+   "domain": "Security",
+   "direction": -1,
+   "qualitative": false,
+   "hidden": false
+  }
+ ],
+ "total": 16,
+ "p": 1,
+ "ps": 500
+}

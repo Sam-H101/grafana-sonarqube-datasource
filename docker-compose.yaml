@@ -1,0 +1,120 @@
+# Dev stack: `docker compose up -d --wait` starts SonarQube, seeds it with
+# sample projects, and starts Grafana with the plugin.
+# The toolbox (profile "tools") runs builds and tests: see devenv/run.sh.
+services:
+  grafana:
+    extends:
+      file: .config/docker-compose-base.yaml
+      service: grafana
+    build:
+      args:
+        # The version the plugin was tested with; CI overrides it.
+        grafana_version: ${GRAFANA_VERSION:-13.3.1}
+    # Local by default: the dev image grants anonymous Admin. To expose the
+    # stack, set BIND_ADDRESS, ANONYMOUS_AUTH_ENABLED=false and
+    # GRAFANA_ADMIN_PASSWORD (see devenv/README.md).
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      # Stands in for Grafana Cloud's Private data source connect: data
+      # sources with "secure socks proxy" on send their requests through the
+      # `socks` service. allow_insecure skips the mutual TLS that the real
+      # service uses, which a local SOCKS proxy cannot offer.
+      GF_SECURE_SOCKS_DATASOURCE_PROXY_ENABLED: 'true'
+      GF_SECURE_SOCKS_DATASOURCE_PROXY_PROXY_ADDRESS: socks:1080
+      GF_SECURE_SOCKS_DATASOURCE_PROXY_ALLOW_INSECURE: 'true'
+      GF_SECURE_SOCKS_DATASOURCE_PROXY_SHOW_UI: 'true'
+    ports: !override
+      - ${BIND_ADDRESS:-127.0.0.1}:${GRAFANA_PORT:-3000}:3000/tcp
+    volumes:
+      # The token the seed created, read by the provisioned data sources.
+      - sonar-seed:/run/sonar:ro
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+
+  sonarqube:
+    image: ${SONARQUBE_IMAGE:-sonarqube:26.11.0.134175-community}
+    environment:
+      # Elasticsearch's production checks (vm.max_map_count) are not needed
+      # for a throwaway server.
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: 'true'
+    ports:
+      - ${BIND_ADDRESS:-127.0.0.1}:${SONARQUBE_PORT:-9000}:9000/tcp
+    networks:
+      default:
+      # Reachable under this name only through the socks proxy: it is how the
+      # tests prove that a request went through Private data source connect.
+      private:
+        aliases:
+          - sonarqube-private
+    healthcheck:
+      # Newer images ship curl, older ones (9.9) wget.
+      test:
+        - CMD-SHELL
+        - (curl -fs http://localhost:9000/api/system/status || wget -qO- http://localhost:9000/api/system/status) | grep -q '"status":"UP"'
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  # One-shot: creates sample projects with analysis history and a token.
+  seed:
+    image: ${SCANNER_IMAGE:-sonarsource/sonar-scanner-cli:12}
+    user: root
+    entrypoint: ['python3', '/seed/seed.py']
+    environment:
+      SONAR_URL: http://sonarqube:9000
+      SEED_OUT: /seed-out
+    volumes:
+      - ./devenv/sonarqube:/seed:ro
+      - sonar-seed:/seed-out
+    depends_on:
+      sonarqube:
+        condition: service_healthy
+    restart: 'no'
+
+  # A plain SOCKS5 proxy on both networks (see the grafana service).
+  socks:
+    image: serjs/go-socks5-proxy:latest
+    environment:
+      REQUIRE_AUTH: 'false'
+    networks:
+      - default
+      - private
+
+  toolbox:
+    profiles: ['tools']
+    build:
+      context: devenv/toolbox
+      args:
+        UID: ${TOOLBOX_UID:-1000}
+        GID: ${TOOLBOX_GID:-1000}
+    image: sonarqube-datasource-toolbox:local
+    init: true
+    working_dir: /workspace
+    environment:
+      GRAFANA_URL: http://grafana:3000
+      SONAR_URL: http://sonarqube:9000
+      SONAR_TOKEN_FILE: /run/sonar/token
+      SONARCLOUD_TESTS: ${SONARCLOUD_TESTS:-}
+      CI: ${CI:-}
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+      - gomod:/go/pkg/mod
+      - gobuild:/home/dev/.cache/go-build
+      - npmcache:/home/dev/.npm
+      - playwright:/ms-playwright
+      - sonar-seed:/run/sonar:ro
+
+networks:
+  private:
+    internal: true
+
+volumes:
+  sonar-seed:
+  node_modules:
+  gomod:
+  gobuild:
+  npmcache:
+  playwright:

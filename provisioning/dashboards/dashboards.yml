@@ -1,0 +1,9 @@
+apiVersion: 1
+
+providers:
+  - name: SonarQube
+    folder: SonarQube
+    type: file
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

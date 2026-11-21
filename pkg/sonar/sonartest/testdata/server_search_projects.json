@@ -1,0 +1,58 @@
+{
+ "paging": {
+  "pageIndex": 1,
+  "pageSize": 500,
+  "total": 3
+ },
+ "components": [
+  {
+   "key": "demo:legacy-billing",
+   "name": "Legacy Billing",
+   "qualifier": "TRK",
+   "isFavorite": false,
+   "analysisDate": "2026-11-14T06:13:39+0000",
+   "tags": [
+    "backend",
+    "legacy"
+   ],
+   "visibility": "public",
+   "isAiCodeFixEnabled": false,
+   "aiCodeAssurance": "NONE",
+   "containsAiCode": false,
+   "uuid": "10f9e51a-ed9a-49f8-8007-9716d90e6ea4"
+  },
+  {
+   "key": "demo:shop-api",
+   "name": "Shop API",
+   "qualifier": "TRK",
+   "isFavorite": false,
+   "analysisDate": "2026-11-18T06:13:39+0000",
+   "tags": [
+    "backend",
+    "shop"
+   ],
+   "visibility": "public",
+   "isAiCodeFixEnabled": false,
+   "aiCodeAssurance": "NONE",
+   "containsAiCode": false,
+   "uuid": "00072a88-026e-45a8-afbb-ea7563401be3"
+  },
+  {
+   "key": "demo:shop-web",
+   "name": "Shop Web",
+   "qualifier": "TRK",
+   "isFavorite": false,
+   "analysisDate": "2026-11-19T06:13:39+0000",
+   "tags": [
+    "frontend",
+    "shop"
+   ],
+   "visibility": "public",
+   "isAiCodeFixEnabled": false,
+   "aiCodeAssurance": "NONE",
+   "containsAiCode": false,
+   "uuid": "4a097e90-a6e7-4302-bd6b-805d2258314c"
+  }
+ ],
+ "facets": []
+}

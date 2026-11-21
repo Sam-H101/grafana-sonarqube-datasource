@@ -1,0 +1,127 @@
+{
+ "total": 60,
+ "p": 1,
+ "ps": 1,
+ "paging": {
+  "pageIndex": 1,
+  "pageSize": 1,
+  "total": 60
+ },
+ "effortTotal": 362,
+ "debtTotal": 362,
+ "issues": [
+  {
+   "key": "AaEjyuGj5W-X_-a8Mr2l",
+   "rule": "external_eslint_repo:jsx-a11y/anchor-has-content",
+   "severity": "MAJOR",
+   "component": "SonarSource_echoes-react:src/common/router/__tests__/Router-test.tsx",
+   "project": "SonarSource_echoes-react",
+   "line": 194,
+   "hash": "ccf7f2b3c7ad469140c67307e1db668b",
+   "textRange": {
+    "startLine": 194,
+    "endLine": 194,
+    "startOffset": 11,
+    "endOffset": 59
+   },
+   "flows": [],
+   "resolution": "FALSE-POSITIVE",
+   "status": "RESOLVED",
+   "message": "Missing accessible content when using `a` elements.",
+   "effort": "5min",
+   "debt": "5min",
+   "assignee": "someone",
+   "tags": [],
+   "creationDate": "2026-10-09T10:12:03+0000",
+   "updateDate": "2026-11-14T03:05:28+0000",
+   "type": "CODE_SMELL",
+   "organization": "sonarsource",
+   "externalRuleEngine": "eslint_repo",
+   "cleanCodeAttribute": "CONVENTIONAL",
+   "cleanCodeAttributeCategory": "CONSISTENT",
+   "impacts": [
+    {
+     "softwareQuality": "MAINTAINABILITY",
+     "severity": "MEDIUM"
+    }
+   ],
+   "issueStatus": "FALSE_POSITIVE",
+   "projectName": "@sonarsource/echoes-react",
+   "internalTags": [],
+   "lastChangeAnalysisUuid": "adf0a6ae-2ff1-4150-aa34-2fe827fa7cbc",
+   "lastChangeSource": "ANALYSIS",
+   "producer": "SCANNER"
+  }
+ ],
+ "components": [
+  {
+   "organization": "sonarsource",
+   "key": "SonarSource_echoes-react",
+   "uuid": "AZhXChWGPJHPpEtuNq32",
+   "enabled": true,
+   "qualifier": "TRK",
+   "name": "@sonarsource/echoes-react",
+   "longName": "@sonarsource/echoes-react"
+  },
+  {
+   "organization": "sonarsource",
+   "key": "SonarSource_echoes-react:src/common/router/__tests__/Router-test.tsx",
+   "uuid": "AaFcbYisV0ISzwq0kBuG",
+   "enabled": true,
+   "qualifier": "UTS",
+   "name": "Router-test.tsx",
+   "longName": "src/common/router/__tests__/Router-test.tsx",
+   "path": "src/common/router/__tests__/Router-test.tsx"
+  }
+ ],
+ "organizations": [
+  {
+   "key": "sonarsource",
+   "name": "SonarSource"
+  }
+ ],
+ "facets": [
+  {
+   "property": "severities",
+   "values": [
+    {
+     "val": "MAJOR",
+     "count": 42
+    },
+    {
+     "val": "MINOR",
+     "count": 18
+    },
+    {
+     "val": "INFO",
+     "count": 0
+    },
+    {
+     "val": "CRITICAL",
+     "count": 0
+    },
+    {
+     "val": "BLOCKER",
+     "count": 0
+    }
+   ]
+  },
+  {
+   "property": "types",
+   "values": [
+    {
+     "val": "CODE_SMELL",
+     "count": 58
+    },
+    {
+     "val": "VULNERABILITY",
+     "count": 2
+    },
+    {
+     "val": "BUG",
+     "count": 0
+    }
+   ]
+  }
+ ]
+}

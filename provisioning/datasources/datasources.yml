@@ -1,0 +1,37 @@
+apiVersion: 1
+
+# Data sources for the dev stack (docker-compose.yaml). The token is created
+# by the seed service and read from its volume.
+datasources:
+  - name: SonarQube
+    type: smartquinoa1504-sonarqube-datasource
+    uid: sonarqube-dev
+    access: proxy
+    url: http://sonarqube:9000
+    isDefault: true
+    editable: true
+    secureJsonData:
+      token: $__file{/run/sonar/token}
+
+  # The same server, reachable only through the socks proxy that stands in
+  # for Grafana Cloud's Private data source connect.
+  - name: SonarQube (private network)
+    type: smartquinoa1504-sonarqube-datasource
+    uid: sonarqube-pdc
+    access: proxy
+    url: http://sonarqube-private:9000
+    editable: true
+    jsonData:
+      enableSecureSocksProxy: true
+    secureJsonData:
+      token: $__file{/run/sonar/token}
+
+  # SonarQube Cloud, anonymous: the public projects of one organization.
+  - name: SonarQube Cloud (public)
+    type: smartquinoa1504-sonarqube-datasource
+    uid: sonarcloud-public
+    access: proxy
+    url: https://sonarcloud.io
+    editable: true
+    jsonData:
+      organization: sonarsource

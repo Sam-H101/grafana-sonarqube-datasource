@@ -1,0 +1,64 @@
+{
+ "paging": {
+  "pageIndex": 1,
+  "pageSize": 3,
+  "total": 37
+ },
+ "analyses": [
+  {
+   "key": "61de7b91-85d5-4c41-a389-29029d13c238",
+   "date": "2026-11-21T03:05:11+0000",
+   "events": [
+    {
+     "key": "AaH8EXR6KWHopb5Sl0Kp",
+     "category": "VERSION",
+     "name": "6.3.0"
+    },
+    {
+     "key": "AaH8EXRvKWHopb5Sl0Ko",
+     "category": "QUALITY_GATE",
+     "name": "Red (was Green)",
+     "description": "Severity of a vulnerability dependency risk > 14"
+    }
+   ],
+   "projectVersion": "6.3.0",
+   "manualNewCodePeriodBaseline": false,
+   "revision": "85a963941bd88dd4df867bd210a60cb8d16b4625"
+  },
+  {
+   "key": "979caa0b-f47d-404e-9651-0d10eecea0e5",
+   "date": "2026-11-20T03:05:00+0000",
+   "events": [
+    {
+     "key": "AaH26uagXsOE0DJ8Uyys",
+     "category": "QUALITY_PROFILE",
+     "name": "Changes in 'Sonar way comprehensive' (css)"
+    },
+    {
+     "key": "AaH26uagXsOE0DJ8Uyyr",
+     "category": "QUALITY_GATE",
+     "name": "Green (was Red)",
+     "description": ""
+    }
+   ],
+   "projectVersion": "6.3.0",
+   "manualNewCodePeriodBaseline": false,
+   "revision": "85a963941bd88dd4df867bd210a60cb8d16b4625"
+  },
+  {
+   "key": "7ec37650-5b91-4e80-909b-6f4ce9901f59",
+   "date": "2026-11-19T03:05:11+0000",
+   "events": [
+    {
+     "key": "AaHxxLyoFOH42IG5gvxn",
+     "category": "QUALITY_GATE",
+     "name": "Red (was Green)",
+     "description": "Severity of a vulnerability dependency risk > 14"
+    }
+   ],
+   "projectVersion": "6.3.0",
+   "manualNewCodePeriodBaseline": false,
+   "revision": "b19209ca5a9eb60c40ab8392b4ea6dcd21da0aa1"
+  }
+ ]
+}

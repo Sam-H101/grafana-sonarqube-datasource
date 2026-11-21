@@ -1,0 +1,15 @@
+{
+ "branches": [
+  {
+   "name": "main",
+   "isMain": true,
+   "type": "BRANCH",
+   "status": {
+    "qualityGateStatus": "OK"
+   },
+   "analysisDate": "2026-11-18T06:13:39+0000",
+   "excludedFromPurge": true,
+   "branchId": "0a0a871b-edf1-4fa2-ae7e-2e85f0142f7c"
+  }
+ ]
+}

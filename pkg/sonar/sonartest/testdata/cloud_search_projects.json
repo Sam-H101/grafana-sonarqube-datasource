@@ -1,0 +1,86 @@
+{
+ "paging": {
+  "pageIndex": 1,
+  "pageSize": 5,
+  "total": 83
+ },
+ "organizations": [],
+ "components": [
+  {
+   "organization": "sonarsource",
+   "key": "SonarSource_echoes-react",
+   "projectId": "AZhXChWGPJHPpEtuNq32",
+   "projectUuidV4": "2c191d29-a65c-4134-ba5b-cbda7b185a2e",
+   "name": "@sonarsource/echoes-react",
+   "analysisDate": "2026-11-21T03:05:11+0000",
+   "tags": [],
+   "visibility": "public",
+   "eligibilityStatus": "COMPLETED",
+   "eligible": false,
+   "isNew": false,
+   "analysisDateAllBranches": "2026-11-21T03:05:11+0000",
+   "isAiCodeAssured": false
+  },
+  {
+   "organization": "sonarsource",
+   "key": "SonarSource_ci-github-actions",
+   "projectId": "AZedTnA9q5IQEvne4ynt",
+   "projectUuidV4": "e08b3e29-dd4f-427e-bdb6-4bba5821946d",
+   "name": "ci-github-actions",
+   "analysisDate": "2026-11-18T15:13:46+0000",
+   "tags": [],
+   "visibility": "public",
+   "eligibilityStatus": "COMPLETED",
+   "eligible": false,
+   "isNew": false,
+   "analysisDateAllBranches": "2026-11-21T01:24:12+0000",
+   "isAiCodeAssured": false
+  },
+  {
+   "organization": "sonarsource",
+   "key": "SonarSource_cloud-native-gradle-modules",
+   "projectId": "AZsNHJQrILlw4h7_m5nh",
+   "projectUuidV4": "6fbaabd7-e332-4931-9211-3829a0dfbec6",
+   "name": "cloud-native-gradle-modules",
+   "analysisDate": "2026-11-21T01:14:49+0000",
+   "tags": [],
+   "visibility": "public",
+   "eligibilityStatus": "COMPLETED",
+   "eligible": true,
+   "isNew": false,
+   "analysisDateAllBranches": "2026-11-21T01:14:49+0000",
+   "isAiCodeAssured": false
+  },
+  {
+   "organization": "sonarsource",
+   "key": "SonarSource_cookiecutter-sonar",
+   "projectId": "AZwrZiqmtjm2WvTLskWv",
+   "projectUuidV4": "4fb1a6e2-f834-45f5-b460-a584b5d4e727",
+   "name": "cookiecutter-sonar",
+   "analysisDate": "2026-11-18T11:17:11+0000",
+   "tags": [],
+   "visibility": "public",
+   "eligibilityStatus": "COMPLETED",
+   "eligible": true,
+   "isNew": false,
+   "analysisDateAllBranches": "2026-11-18T19:54:29+0000",
+   "isAiCodeAssured": false
+  },
+  {
+   "organization": "sonarsource",
+   "key": "SonarSource_core-languages-tooling-public",
+   "projectId": "AZ1Ip9Ybu1M8fNFGUk5s",
+   "projectUuidV4": "6064921c-8789-4f68-b877-bfdda6546666",
+   "name": "core-languages-tooling-public",
+   "analysisDate": "2026-11-19T15:03:37+0000",
+   "tags": [],
+   "visibility": "public",
+   "eligibilityStatus": "COMPLETED",
+   "eligible": true,
+   "isNew": false,
+   "analysisDateAllBranches": "2026-11-20T10:29:26+0000",
+   "isAiCodeAssured": false
+  }
+ ],
+ "facets": []
+}

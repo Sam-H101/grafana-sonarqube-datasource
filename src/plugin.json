@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "SonarQube",
+  "id": "smartquinoa1504-sonarqube-datasource",
+  "metrics": true,
+  "annotations": true,
+  "alerting": true,
+  "backend": true,
+  "executable": "gpx_sonarqube",
+  "info": {
+    "description": "Code quality from SonarQube Server and SonarQube Cloud: metric trends, quality gates, issues and analysis events.",
+    "author": {
+      "name": "Sam H",
+      "url": "https://github.com/Sam-H101"
+    },
+    "keywords": ["datasource", "sonarqube", "sonarcloud", "code quality", "coverage", "quality gate", "security"],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [
+      { "name": "Source code", "url": "https://github.com/Sam-H101/grafana-sonarqube-datasource" },
+      { "name": "Documentation", "url": "https://github.com/Sam-H101/grafana-sonarqube-datasource#readme" },
+      { "name": "Report an issue", "url": "https://github.com/Sam-H101/grafana-sonarqube-datasource/issues" },
+      { "name": "Licence (Apache-2.0)", "url": "https://github.com/Sam-H101/grafana-sonarqube-datasource/blob/master/LICENSE" }
+    ],
+    "screenshots": [
+      { "name": "Dashboard", "path": "img/screenshots/dashboard.png" },
+      { "name": "Query editor", "path": "img/screenshots/query-editor.png" },
+      { "name": "Configuration", "path": "img/screenshots/config-editor.png" }
+    ],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=13.2.0",
+    "plugins": []
+  }
+}

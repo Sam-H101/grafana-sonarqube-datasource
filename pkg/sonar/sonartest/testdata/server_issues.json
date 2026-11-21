@@ -1,0 +1,249 @@
+{
+ "total": 15,
+ "p": 1,
+ "ps": 2,
+ "paging": {
+  "pageIndex": 1,
+  "pageSize": 2,
+  "total": 15
+ },
+ "effortTotal": 148,
+ "issues": [
+  {
+   "key": "aa9716e1-74ad-4be6-8333-ab195c2f07b1",
+   "rule": "python:S1764",
+   "severity": "MAJOR",
+   "component": "demo:shop-api:src/checks.py",
+   "project": "demo:shop-api",
+   "hash": "94e92c0a006cef05c7e3f27785b5565d",
+   "textRange": {
+    "startLine": 22,
+    "endLine": 22,
+    "startOffset": 16,
+    "endOffset": 21
+   },
+   "flows": [
+    {
+     "locations": [
+      {
+       "component": "demo:shop-api:src/checks.py",
+       "textRange": {
+        "startLine": 22,
+        "endLine": 22,
+        "startOffset": 7,
+        "endOffset": 12
+       },
+       "msgFormattings": []
+      }
+     ]
+    }
+   ],
+   "resolution": "FIXED",
+   "status": "CLOSED",
+   "message": "Correct one of the identical sub-expressions on both sides of operator \"==\".",
+   "effort": "2min",
+   "debt": "2min",
+   "author": "",
+   "tags": [
+    "suspicious"
+   ],
+   "creationDate": "2026-10-10T06:13:39+0000",
+   "updateDate": "2026-10-24T06:13:39+0000",
+   "closeDate": "2026-10-24T06:13:39+0000",
+   "type": "BUG",
+   "scope": "MAIN",
+   "quickFixAvailable": false,
+   "messageFormattings": [],
+   "codeVariants": [],
+   "cleanCodeAttribute": "LOGICAL",
+   "cleanCodeAttributeCategory": "INTENTIONAL",
+   "impacts": [
+    {
+     "softwareQuality": "RELIABILITY",
+     "severity": "MEDIUM"
+    }
+   ],
+   "issueStatus": "FIXED",
+   "prioritizedRule": false,
+   "fromSonarQubeUpdate": false,
+   "internalTags": [],
+   "linkedTicketStatus": "NOT_LINKED"
+  },
+  {
+   "key": "21ab85bd-a2ef-49bc-ba68-f638f5f660d6",
+   "rule": "python:S1764",
+   "severity": "MAJOR",
+   "component": "demo:shop-api:src/checks.py",
+   "project": "demo:shop-api",
+   "hash": "94e92c0a006cef05c7e3f27785b5565d",
+   "textRange": {
+    "startLine": 26,
+    "endLine": 26,
+    "startOffset": 16,
+    "endOffset": 21
+   },
+   "flows": [
+    {
+     "locations": [
+      {
+       "component": "demo:shop-api:src/checks.py",
+       "textRange": {
+        "startLine": 26,
+        "endLine": 26,
+        "startOffset": 7,
+        "endOffset": 12
+       },
+       "msgFormattings": []
+      }
+     ]
+    }
+   ],
+   "resolution": "FIXED",
+   "status": "CLOSED",
+   "message": "Correct one of the identical sub-expressions on both sides of operator \"==\".",
+   "effort": "2min",
+   "debt": "2min",
+   "author": "",
+   "tags": [
+    "suspicious"
+   ],
+   "creationDate": "2026-10-10T06:13:39+0000",
+   "updateDate": "2026-10-24T06:13:39+0000",
+   "closeDate": "2026-10-24T06:13:39+0000",
+   "type": "BUG",
+   "scope": "MAIN",
+   "quickFixAvailable": false,
+   "messageFormattings": [],
+   "codeVariants": [],
+   "cleanCodeAttribute": "LOGICAL",
+   "cleanCodeAttributeCategory": "INTENTIONAL",
+   "impacts": [
+    {
+     "softwareQuality": "RELIABILITY",
+     "severity": "MEDIUM"
+    }
+   ],
+   "issueStatus": "FIXED",
+   "prioritizedRule": false,
+   "fromSonarQubeUpdate": false,
+   "internalTags": [],
+   "linkedTicketStatus": "NOT_LINKED"
+  }
+ ],
+ "components": [
+  {
+   "key": "demo:shop-api:src/checks.py",
+   "enabled": true,
+   "qualifier": "FIL",
+   "name": "checks.py",
+   "longName": "src/checks.py",
+   "path": "src/checks.py"
+  },
+  {
+   "key": "demo:shop-api",
+   "enabled": true,
+   "qualifier": "TRK",
+   "name": "Shop API",
+   "longName": "Shop API"
+  }
+ ],
+ "facets": [
+  {
+   "property": "severities",
+   "values": [
+    {
+     "val": "MAJOR",
+     "count": 10
+    },
+    {
+     "val": "CRITICAL",
+     "count": 4
+    },
+    {
+     "val": "BLOCKER",
+     "count": 1
+    },
+    {
+     "val": "INFO",
+     "count": 0
+    },
+    {
+     "val": "MINOR",
+     "count": 0
+    }
+   ]
+  },
+  {
+   "property": "types",
+   "values": [
+    {
+     "val": "BUG",
+     "count": 8
+    },
+    {
+     "val": "VULNERABILITY",
+     "count": 6
+    },
+    {
+     "val": "CODE_SMELL",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "property": "impactSoftwareQualities",
+   "values": [
+    {
+     "val": "MAINTAINABILITY",
+     "count": 1
+    },
+    {
+     "val": "SECURITY",
+     "count": 6
+    },
+    {
+     "val": "RELIABILITY",
+     "count": 8
+    }
+   ]
+  },
+  {
+   "property": "impactSeverities",
+   "values": [
+    {
+     "val": "HIGH",
+     "count": 4
+    },
+    {
+     "val": "MEDIUM",
+     "count": 10
+    },
+    {
+     "val": "LOW",
+     "count": 0
+    },
+    {
+     "val": "INFO",
+     "count": 0
+    },
+    {
+     "val": "BLOCKER",
+     "count": 1
+    }
+   ]
+  },
+  {
+   "property": "issueStatuses",
+   "values": [
+    {
+     "val": "FIXED",
+     "count": 13
+    },
+    {
+     "val": "OPEN",
+     "count": 2
+    }
+   ]
+  }
+ ]
+}

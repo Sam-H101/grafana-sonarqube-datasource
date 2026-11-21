@@ -1,0 +1,52 @@
+# Builds the plugin for every platform and creates a draft GitHub release with
+# the zip and its SHA-1 when a version tag is pushed.
+# (See https://github.com/grafana/plugin-actions/blob/main/build-plugin/README.md)
+#
+# Signing, set with repository variables:
+#   - Neither variable set: the release is unsigned. A public plugin is
+#     submitted to Grafana unsigned; it can be signed only after approval.
+#   - GRAFANA_SIGN_RELEASES=true: community signature, once Grafana has approved
+#     the plugin and assigned its signature level.
+#   - GRAFANA_ROOT_URLS=<comma-separated URLs>: private signature for those
+#     Grafana servers.
+# Both signatures need the GRAFANA_ACCESS_POLICY_TOKEN secret.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Run workflow on version tags, e.g. v1.0.0.
+
+permissions: read-all
+
+jobs:
+  release:
+    permissions:
+      contents: write
+      # For the build provenance attestation.
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Grafana rejects a plugin whose built version differs from package.json
+      # in the source, so the tag must match it. Check before the build, not
+      # after it.
+      - name: Check the tag matches package.json
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json version ${version}. Set the version in package.json and package-lock.json, add it to CHANGELOG.md, push, then tag v<version>."
+            exit 1
+          fi
+
+      - uses: grafana/plugin-actions/build-plugin@build-plugin/v2.0.2
+        with:
+          policy_token: ${{ (vars.GRAFANA_SIGN_RELEASES == 'true' || vars.GRAFANA_ROOT_URLS != '') && secrets.GRAFANA_ACCESS_POLICY_TOKEN || '' }}
+          sign_root_urls: ${{ vars.GRAFANA_ROOT_URLS }}
+          attestation: true
+          go-version: '1.26'
+          node-version: '24'
