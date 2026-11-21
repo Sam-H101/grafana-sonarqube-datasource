@@ -152,16 +152,17 @@ test('analyses and events need a project and list versions and quality gate chan
   await shot(page, 'query', 'analyses');
 });
 
-test('typing a project name and pressing Enter selects that project', async ({ panelEditPage, page }) => {
+test('a project name typed as a custom value selects that project', async ({ panelEditPage, page }) => {
   await panelEditPage.timeRange.set(RANGE);
   const row = panelEditPage.getQueryEditorRow('A');
   const response = nextQuery(page, '"projects":["demo:shop-web"]');
   const projects = row.locator('#sonar-projects');
   await projects.click();
   await projects.fill('shop web');
-  // Enter takes the first option, "Use custom value"; the editor resolves the
-  // name to the project's key instead of sending the name.
-  await page.keyboard.press('Enter');
+  // The dropdown offers the typed text as "Use custom value" first (and, from
+  // Grafana 13.3, Enter picks it). The editor resolves a typed name to the
+  // project's key instead of sending the name to SonarQube.
+  await page.getByRole('option', { name: /Use custom value/ }).click();
   const frames = await framesOf(await response);
   expect(column(frames[0], 'coverage')).toHaveLength(4);
   await expect(row.getByText('Shop Web', { exact: true }).first()).toBeVisible();
