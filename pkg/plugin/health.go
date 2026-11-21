@@ -2,9 +2,11 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/Sam-H101/grafana-sonarqube-datasource/pkg/sonar"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
@@ -26,6 +28,15 @@ func (d *Datasource) CheckHealth(ctx context.Context, _ *backend.CheckHealthRequ
 	defer cancel()
 
 	status, err := d.client.Status(ctx)
+	if errors.Is(err, sonar.ErrUnauthorized) || errors.Is(err, sonar.ErrForbidden) {
+		// SonarQube answers its status check without credentials, so a
+		// refusal here comes from something else: another application at
+		// this address, or a proxy with its own login.
+		return &backend.CheckHealthResult{
+			Status:  backend.HealthStatusError,
+			Message: "The server at " + d.settings.URL + " asked for a login before answering SonarQube's status check, which SonarQube itself never does. Check the URL. If a proxy in front of SonarQube requires its own login, Grafana cannot get through it with a SonarQube token.",
+		}, nil
+	}
 	if err != nil {
 		return fail(err)
 	}

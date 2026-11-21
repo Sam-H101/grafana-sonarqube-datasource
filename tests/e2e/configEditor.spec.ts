@@ -70,8 +70,8 @@ test('a new data source: no token, a wrong token, then the right one', async ({ 
 test('a wrong address is explained', async ({ createDataSourceConfigPage, page }) => {
   const configPage = await createDataSourceConfigPage({ type: TYPE });
 
-  // A server that is not SonarQube (Grafana itself).
-  await page.locator('#sonar-url').fill('http://grafana:3000');
+  // A wrong path prefix: the server answers with a web page, not the API.
+  await page.locator('#sonar-url').fill('http://sonarqube:9000/wrong-prefix');
   await expect(configPage.saveAndTest()).not.toBeOK();
   await expect(configPage).toHaveAlert('error', { hasText: 'did not answer like SonarQube' });
   await expect(page.getByText('including any path prefix such as /sonarqube').first()).toBeVisible();

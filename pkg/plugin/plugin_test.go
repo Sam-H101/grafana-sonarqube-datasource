@@ -392,6 +392,12 @@ func TestCheckHealth(t *testing.T) {
 	if h.Status != backend.HealthStatusError || !strings.Contains(h.Message, "did not answer like SonarQube") || !strings.Contains(h.Message, "/sonarqube") {
 		t.Errorf("not sonarqube: %+v", h)
 	}
+	// Something that wants its own login before SonarQube's open status check.
+	f.Handlers["api/system/status"] = func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusUnauthorized) }
+	h = health(newDS(t, f, `{}`, testToken))
+	if h.Status != backend.HealthStatusError || !strings.Contains(h.Message, "asked for a login before answering SonarQube's status check") {
+		t.Errorf("login wall: %+v", h)
+	}
 	// Still starting.
 	f.Handlers["api/system/status"] = func(w http.ResponseWriter, _ *http.Request) { _, _ = w.Write([]byte(`{"status":"STARTING"}`)) }
 	h = health(newDS(t, f, `{}`, testToken))
