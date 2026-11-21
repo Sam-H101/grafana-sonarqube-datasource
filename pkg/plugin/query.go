@@ -75,8 +75,14 @@ func (d *Datasource) query(ctx context.Context, q backend.DataQuery) backend.Dat
 		frames, err = d.issueCounts(ctx, qm, q.TimeRange)
 	case models.QueryAnalyses:
 		frames, err = d.analyses(ctx, qm, q.TimeRange)
+	case models.QueryQualityGate:
+		frames, err = d.qualityGate(ctx, qm)
+	case models.QueryHotspots:
+		frames, err = d.hotspots(ctx, qm)
+	case models.QueryPullRequests:
+		frames, err = d.pullRequests(ctx, qm)
 	case models.QueryProjects:
-		frames, err = d.projectList(ctx)
+		frames, err = d.projectList(ctx, qm)
 	case models.QueryMetrics:
 		frames, err = d.metricList(ctx)
 	case models.QueryBranches:
@@ -184,7 +190,7 @@ func (d *Datasource) measureHistory(ctx context.Context, qm *models.QueryModel, 
 	}
 	names := d.projectNames(ctx)
 	histories, err := forEach(ctx, qm.Projects, func(ctx context.Context, project string) ([]sonar.History, error) {
-		return d.client.MeasureHistory(ctx, project, qm.Metrics, qm.Branch, tr.From, tr.To)
+		return d.client.MeasureHistory(ctx, project, qm.Metrics, refOf(qm), tr.From, tr.To)
 	})
 	if err != nil {
 		return nil, err
@@ -294,7 +300,7 @@ func (d *Datasource) measures(ctx context.Context, qm *models.QueryModel) (data.
 	}
 	var measures []sonar.Measure
 	if len(keys) > 0 {
-		if measures, err = d.client.Measures(ctx, keys, qm.Metrics, qm.Branch); err != nil {
+		if measures, err = d.client.Measures(ctx, keys, qm.Metrics, refOf(qm)); err != nil {
 			return nil, err
 		}
 	}
@@ -334,7 +340,7 @@ func (d *Datasource) measures(ctx context.Context, qm *models.QueryModel) (data.
 	project := data.NewField("project", nil, nameCol)
 	project.Config = &data.FieldConfig{
 		DisplayName: "Project",
-		Links:       []data.DataLink{{Title: "Open in SonarQube", URL: d.settings.URL + "/dashboard?id=${__data.fields.key:percentencode}", TargetBlank: true}},
+		Links:       []data.DataLink{{Title: "Open in SonarQube", URL: d.settings.URL + "/dashboard?id=${__data.fields.key:percentencode}" + refParams(qm), TargetBlank: true}},
 	}
 	frame := data.NewFrame("measures", project, named(data.NewField("key", nil, keys), "Key"))
 	for _, c := range cols {
@@ -349,7 +355,7 @@ func (d *Datasource) measures(ctx context.Context, qm *models.QueryModel) (data.
 }
 
 func (d *Datasource) issueFilter(qm *models.QueryModel, tr backend.TimeRange) sonar.IssueFilter {
-	f := sonar.IssueFilter{Projects: qm.Projects, Branch: qm.Branch, Severities: qm.Severities, Types: qm.Types}
+	f := sonar.IssueFilter{Projects: qm.Projects, Ref: refOf(qm), Severities: qm.Severities, Types: qm.Types}
 	switch qm.Resolution {
 	case models.ResolutionOpen:
 		open := false
@@ -422,7 +428,7 @@ func (d *Datasource) issues(ctx context.Context, qm *models.QueryModel, tr backe
 		file[i], line[i] = is.File(), is.Line
 		assignee[i], author[i], effort[i], key[i] = is.Assignee, is.Author, is.Effort, is.Key
 		tags[i] = strings.Join(is.Tags, ", ")
-		link[i] = d.settings.URL + "/project/issues?id=" + url.QueryEscape(is.Project) + "&issues=" + url.QueryEscape(is.Key) + "&open=" + url.QueryEscape(is.Key)
+		link[i] = d.settings.URL + "/project/issues?id=" + url.QueryEscape(is.Project) + "&issues=" + url.QueryEscape(is.Key) + "&open=" + url.QueryEscape(is.Key) + refParams(qm)
 	}
 
 	sev := named(data.NewField("severity", nil, severity), "Severity")
@@ -602,9 +608,19 @@ func (d *Datasource) analyses(ctx context.Context, qm *models.QueryModel, tr bac
 	return data.Frames{frame}, nil
 }
 
-// projectList returns the projects the token can see.
-func (d *Datasource) projectList(ctx context.Context) (data.Frames, error) {
-	projects, total, err := d.projects(ctx)
+// projectList returns the projects the token can see, or those of them that
+// have one of the query's tags.
+func (d *Datasource) projectList(ctx context.Context, qm *models.QueryModel) (data.Frames, error) {
+	var (
+		projects []sonar.Project
+		total    int
+		err      error
+	)
+	if len(qm.Tags) > 0 {
+		projects, total, err = d.client.ProjectsTagged(ctx, maxListedProjects, qm.Tags)
+	} else {
+		projects, total, err = d.projects(ctx)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -629,6 +645,9 @@ func (d *Datasource) projectList(ctx context.Context) (data.Frames, error) {
 	frame.Meta = &data.FrameMeta{PreferredVisualization: data.VisTypeTable}
 	if total > n {
 		addNotice(frame, fmt.Sprintf("Showing the first %d of %d projects.", n, total))
+	}
+	if n == 0 && len(qm.Tags) > 0 {
+		addNotice(frame, fmt.Sprintf("No project the token can see has the tag %s.", strings.Join(qm.Tags, " or ")))
 	}
 	return data.Frames{frame}, nil
 }

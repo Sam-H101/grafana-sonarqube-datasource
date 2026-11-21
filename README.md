@@ -98,15 +98,20 @@ Choose what to ask for in the **Query** field.
 | --- | --- | --- |
 | **Metric history** | Metric values over time, one series per project and metric | Time series of coverage, bugs, technical debt |
 | **Current metrics** | The latest value of each metric, one row per project | Overview tables, stat panels, quality gate status |
+| **Quality gate conditions** | Each condition of the quality gate: what it measures, the value, what the gate requires, and whether it passed | Showing why a gate failed |
 | **Issues** | A list of issues, newest first, with a link to each | Tables of what needs attention |
 | **Issue counts** | How many issues there are per severity, type, project, rule, tag, language, assignee, author, resolution or status | Bar and pie charts |
+| **Security hotspots** | A list of hotspots, highest review priority first, with a link to each | Review queues |
 | **Analyses and events** | Analyses with their events: new versions, quality gate changes | Annotations, release tables |
-| **Projects** | The projects the token can see | Inventory tables |
+| **Pull requests** | The pull requests SonarQube has analysed, with their quality gate and new issues | Tables of what is waiting to merge |
+| **Projects** | The projects the token can see, or those with one of the chosen tags | Inventory tables |
 
 **Projects** and **Metrics** are dropdowns filled from your SonarQube. You can
 also type a project key that is not listed, or choose a dashboard variable.
-Leave Projects empty in *Current metrics*, *Issues* and *Issue counts* to
-cover every project the token can see.
+Leave Projects empty in *Current metrics*, *Quality gate conditions*, *Issues*
+and *Issue counts* to cover every project the token can see. *Security
+hotspots* and *Pull requests* need at least one project, because SonarQube
+lists them one project at a time.
 
 ### Time range
 
@@ -116,7 +121,8 @@ Grafana changes, so a short range (a new panel shows the last 6 hours) is
 often empty; the panel's query editor then says when the latest analysis was.
 Use a range such as the last 90 days.
 
-*Current metrics* always shows the latest values, whatever the time range.
+*Current metrics*, *Quality gate conditions*, *Security hotspots* and *Pull
+requests* always show the latest state, whatever the time range.
 *Issues* and *Issue counts* cover issues of any age unless you turn on
 **Created in time range**.
 
@@ -130,16 +136,47 @@ Use a range such as the last 90 days.
   the underlying value is `OK`, `ERROR` or `WARN`.
 - Project names and issue messages link to SonarQube.
 
-### Branches
+### Quality gate conditions
 
-Leave **Branch** empty for the main branch, or enter a branch name. Branch
-analysis needs SonarQube Developer Edition or higher, or SonarQube Cloud.
+Each row is one condition of a project's quality gate as SonarQube evaluated
+it in the latest analysis: the **Condition** (a metric), its **Value**, what
+is **Required** (for example `at least 80%`, `at most 0`, `A or better`) and
+its **Status**. Failed conditions come first. Turn on **Failed only** for a
+table of just the reasons gates are failing.
+
+### Security hotspots
+
+**Status** selects hotspots still **To review** (the default), those already
+**Reviewed**, or **All**. Reviewed hotspots show how they were resolved:
+Fixed, Safe or Acknowledged.
+
+Some SonarQube versions have no hotspot rules: SonarQube Community Build
+26.11 reports what used to be hotspots as vulnerabilities. There this query
+is empty, and the *Issues* query with type **Vulnerability** lists them.
+
+### Branches and pull requests
+
+Leave **Branch** empty for the main branch, or enter a branch name. To look
+at a pull request instead, enter its number in **Pull request**; a query uses
+one or the other. Both need SonarQube Developer Edition or higher, or
+SonarQube Cloud.
+
+The *Pull requests* query lists what can be entered there: each pull request
+SonarQube has analysed, with its quality gate. SonarQube deletes a pull
+request some time after its last analysis (30 days by default), so the list
+is of recent ones.
 
 ## Template variables
 
 Create a variable of type **Query** on this data source and choose what it
-lists: **Projects** (shows names, the value is the key), **Metrics**, or the
-**Branches of a project**.
+lists: **Projects** (shows names, the value is the key), **Metrics**, the
+**Branches of a project**, or the **Pull requests of a project** (shows the
+number and title, the value is the number).
+
+For **Projects** you can choose **Tags**: the variable then lists only the
+projects that have one of those tags. A dashboard per team needs nothing
+more than a tag per team in SonarQube. The tag can itself be a variable, for
+example `$team`.
 
 Use the variable by choosing it in a query's Projects or Metrics field. A
 multi-value variable, or **All**, selects several at once, for example one
@@ -181,8 +218,12 @@ available in alert rules (a Grafana rule), so name the projects in the query.
   1,000.
 - One query can name up to 200 projects and 30 metrics.
 - Security hotspots are not listed by the *Issues* query (SonarQube keeps them
-  apart from issues). Their count is available as the `security_hotspots`
-  metric.
+  apart from issues); use the *Security hotspots* query. Their count is also
+  available as the `security_hotspots` metric.
+- *Analyses and events* covers the main branch or a branch, not a pull
+  request.
+- The Tags dropdown offers the tags of the first 1,000 projects; type a tag
+  to use another.
 - Portfolios and applications (Enterprise Edition) are not listed as
   projects.
 

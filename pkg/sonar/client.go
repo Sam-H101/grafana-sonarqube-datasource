@@ -211,6 +211,12 @@ type paging struct {
 // Projects lists up to limit projects, sorted by name, and the total number
 // the token can see.
 func (c *Client) Projects(ctx context.Context, limit int) ([]Project, int, error) {
+	return c.ProjectsTagged(ctx, limit, nil)
+}
+
+// ProjectsTagged is Projects narrowed to the projects that have at least one
+// of tags. Tags must already be validated: they go into a filter expression.
+func (c *Client) ProjectsTagged(ctx context.Context, limit int, tags []string) ([]Project, int, error) {
 	const pageSize = 500
 	var (
 		all   []Project
@@ -218,6 +224,11 @@ func (c *Client) Projects(ctx context.Context, limit int) ([]Project, int, error
 	)
 	for page := 1; len(all) < limit; page++ {
 		params := url.Values{"ps": {strconv.Itoa(pageSize)}, "p": {strconv.Itoa(page)}, "f": {"analysisDate"}, "s": {"name"}}
+		if len(tags) > 0 {
+			// Unquoted: SonarQube Cloud matches nothing when the values of
+			// IN are quoted.
+			params.Set("filter", "tags IN ("+strings.Join(tags, ",")+")")
+		}
 		c.addOrganization(params)
 		var out struct {
 			Paging     paging    `json:"paging"`
@@ -297,9 +308,27 @@ type History struct {
 // maxHistoryPages bounds one history request to 20,000 analyses.
 const maxHistoryPages = 20
 
+// Ref says which code of a project a request is about: a branch, a pull
+// request, or (when empty) the main branch.
+type Ref struct {
+	Branch      string
+	PullRequest string
+}
+
+func (r Ref) empty() bool { return r.Branch == "" && r.PullRequest == "" }
+
+func (r Ref) add(params url.Values) {
+	if r.Branch != "" {
+		params.Set("branch", r.Branch)
+	}
+	if r.PullRequest != "" {
+		params.Set("pullRequest", r.PullRequest)
+	}
+}
+
 // MeasureHistory returns the history of metrics for one project between from
 // and to (zero times mean unbounded).
-func (c *Client) MeasureHistory(ctx context.Context, project string, metrics []string, branch string, from, to time.Time) ([]History, error) {
+func (c *Client) MeasureHistory(ctx context.Context, project string, metrics []string, ref Ref, from, to time.Time) ([]History, error) {
 	const pageSize = 1000
 	byMetric := map[string]*History{}
 	var order []string
@@ -310,9 +339,7 @@ func (c *Client) MeasureHistory(ctx context.Context, project string, metrics []s
 			"ps":        {strconv.Itoa(pageSize)},
 			"p":         {strconv.Itoa(page)},
 		}
-		if branch != "" {
-			params.Set("branch", branch)
-		}
+		ref.add(params)
 		if !from.IsZero() {
 			params.Set("from", from.UTC().Format(TimeLayout))
 		}
@@ -379,16 +406,17 @@ const (
 	measuresMaxMetrics  = 15
 )
 
-// Measures returns the current values of metrics for projects. Without a
-// branch it reads the main branch of many projects per request; with a
-// branch it asks for each project in turn.
-func (c *Client) Measures(ctx context.Context, projects, metrics []string, branch string) ([]Measure, error) {
+// Measures returns the current values of metrics for projects. For the main
+// branch it reads many projects per request; for a branch or a pull request
+// it asks for each project in turn.
+func (c *Client) Measures(ctx context.Context, projects, metrics []string, ref Ref) ([]Measure, error) {
 	var all []Measure
 	for m := 0; m < len(metrics); m += measuresMaxMetrics {
 		metricChunk := metrics[m:min(m+measuresMaxMetrics, len(metrics))]
-		if branch != "" {
+		if !ref.empty() {
 			for _, project := range projects {
-				params := url.Values{"component": {project}, "metricKeys": {strings.Join(metricChunk, ",")}, "branch": {branch}}
+				params := url.Values{"component": {project}, "metricKeys": {strings.Join(metricChunk, ",")}}
+				ref.add(params)
 				var out struct {
 					Component struct {
 						Key      string    `json:"key"`
@@ -448,7 +476,7 @@ func (i Issue) File() string {
 // IssueFilter selects issues.
 type IssueFilter struct {
 	Projects   []string
-	Branch     string
+	Ref        Ref
 	Severities []string
 	Types      []string
 	// Resolved filters on resolution when non-nil.
@@ -465,9 +493,7 @@ func (c *Client) issueParams(f IssueFilter) url.Values {
 		params.Set("componentKeys", strings.Join(f.Projects, ","))
 	}
 	c.addOrganization(params)
-	if f.Branch != "" {
-		params.Set("branch", f.Branch)
-	}
+	f.Ref.add(params)
 	if len(f.Severities) > 0 {
 		params.Set("severities", strings.Join(f.Severities, ","))
 	}
@@ -623,6 +649,109 @@ func (c *Client) Branches(ctx context.Context, project string) ([]Branch, error)
 		return nil, err
 	}
 	return out.Branches, nil
+}
+
+// Hotspot is one security hotspot: code a person has to review before it is
+// known to be a vulnerability or safe.
+type Hotspot struct {
+	Key       string `json:"key"`
+	Component string `json:"component"`
+	Project   string `json:"project"`
+	// SecurityCategory is a slug such as "weak-cryptography" or "auth".
+	SecurityCategory string `json:"securityCategory"`
+	// VulnerabilityProbability is HIGH, MEDIUM or LOW.
+	VulnerabilityProbability string `json:"vulnerabilityProbability"`
+	// Status is TO_REVIEW or REVIEWED; Resolution (FIXED, SAFE,
+	// ACKNOWLEDGED) is set once reviewed.
+	Status       string `json:"status"`
+	Resolution   string `json:"resolution"`
+	Line         *int64 `json:"line"`
+	Message      string `json:"message"`
+	Assignee     string `json:"assignee"`
+	Author       string `json:"author"`
+	CreationDate string `json:"creationDate"`
+	UpdateDate   string `json:"updateDate"`
+	RuleKey      string `json:"ruleKey"`
+}
+
+// File returns the hotspot's file path within its project.
+func (h Hotspot) File() string {
+	return strings.TrimPrefix(strings.TrimPrefix(h.Component, h.Project), ":")
+}
+
+// Hotspots returns up to limit security hotspots of one project and the
+// total number that match. status is TO_REVIEW, REVIEWED or empty for both.
+func (c *Client) Hotspots(ctx context.Context, project string, ref Ref, status string, limit int) ([]Hotspot, int, error) {
+	pageSize := min(limit, 500)
+	var (
+		all   []Hotspot
+		total int
+	)
+	for page := 1; len(all) < limit; page++ {
+		// The project parameter was renamed: SonarQube Cloud and older
+		// Servers read "projectKey", newer Servers "project". Each ignores
+		// the name it does not know.
+		params := url.Values{"projectKey": {project}, "project": {project}, "ps": {strconv.Itoa(pageSize)}, "p": {strconv.Itoa(page)}}
+		ref.add(params)
+		if status != "" {
+			params.Set("status", status)
+		}
+		var out struct {
+			Paging   paging    `json:"paging"`
+			Hotspots []Hotspot `json:"hotspots"`
+		}
+		if err := c.get(ctx, "api/hotspots/search", params, &out); err != nil {
+			return nil, 0, err
+		}
+		total = out.Paging.Total
+		all = append(all, out.Hotspots...)
+		if len(out.Hotspots) < pageSize || len(all) >= total || (page+1)*pageSize > 10000 {
+			break
+		}
+	}
+	if len(all) > limit {
+		all = all[:limit]
+	}
+	return all, total, nil
+}
+
+// PullRequest is one pull request SonarQube has analysed.
+type PullRequest struct {
+	Key    string `json:"key"`
+	Title  string `json:"title"`
+	Branch string `json:"branch"`
+	Base   string `json:"base"`
+	Target string `json:"target"`
+	// URL is the pull request on the code hosting platform, when known.
+	URL    string `json:"url"`
+	Status struct {
+		QualityGateStatus string `json:"qualityGateStatus"`
+		Bugs              *int64 `json:"bugs"`
+		Vulnerabilities   *int64 `json:"vulnerabilities"`
+		CodeSmells        *int64 `json:"codeSmells"`
+	} `json:"status"`
+	AnalysisDate string `json:"analysisDate"`
+}
+
+// ErrNoPullRequests means the server has no pull request analysis at all:
+// SonarQube Community Build.
+var ErrNoPullRequests = errors.New("sonarqube: pull requests are not supported by this server")
+
+// PullRequests lists the pull requests of a project that SonarQube still
+// keeps (it deletes them some time after their last analysis).
+func (c *Client) PullRequests(ctx context.Context, project string) ([]PullRequest, error) {
+	var out struct {
+		PullRequests []PullRequest `json:"pullRequests"`
+	}
+	err := c.get(ctx, "api/project_pull_requests/list", url.Values{"project": {project}}, &out)
+	var apiErr *APIError
+	if errors.As(err, &apiErr) && apiErr.NotFound() && strings.Contains(apiErr.Message, "Unknown url") {
+		return nil, ErrNoPullRequests
+	}
+	if err != nil {
+		return nil, err
+	}
+	return out.PullRequests, nil
 }
 
 // ParseTime reads an API datetime. It returns false for an empty or

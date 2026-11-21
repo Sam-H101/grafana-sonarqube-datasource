@@ -13,6 +13,7 @@ export interface ProjectList {
 export class DataSource extends DataSourceWithBackend<SonarQuery, SonarOptions> {
   private projectList?: Promise<ProjectList>;
   private metricList?: Promise<MetricInfo[]>;
+  private tagList?: Promise<string[]>;
 
   constructor(instanceSettings: DataSourceInstanceSettings<SonarOptions>) {
     super(instanceSettings);
@@ -44,7 +45,9 @@ export class DataSource extends DataSourceWithBackend<SonarQuery, SonarOptions> 
       severities: list(query.severities),
       types: list(query.types),
       categories: list(query.categories),
+      tags: list(query.tags),
       branch: query.branch ? templateSrv.replace(query.branch, scopedVars) : query.branch,
+      pullRequest: query.pullRequest ? templateSrv.replace(query.pullRequest, scopedVars) : query.pullRequest,
     };
   }
 
@@ -67,6 +70,17 @@ export class DataSource extends DataSourceWithBackend<SonarQuery, SonarOptions> 
       });
     }
     return this.metricList;
+  }
+
+  /** The tags of the listed projects, for the tag dropdowns. */
+  getTags(): Promise<string[]> {
+    if (!this.tagList) {
+      this.tagList = this.getResource<string[]>('tags').catch((err) => {
+        this.tagList = undefined;
+        throw err;
+      });
+    }
+    return this.tagList;
   }
 
   getBranches(project: string): Promise<BranchInfo[]> {

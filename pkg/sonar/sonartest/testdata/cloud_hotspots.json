@@ -1,0 +1,50 @@
+{
+  "paging": {
+    "pageIndex": 1,
+    "pageSize": 3,
+    "total": 3
+  },
+  "hotspots": [
+    {
+      "key": "AZow86-7FqD7izbdz6JL",
+      "component": "SonarSource_sonarqube-mcp-server:src/main/java/org/sonarsource/sonarqube/mcp/configuration/McpServerLaunchConfiguration.java",
+      "project": "SonarSource_sonarqube-mcp-server",
+      "securityCategory": "auth",
+      "vulnerabilityProbability": "HIGH",
+      "status": "REVIEWED",
+      "resolution": "SAFE",
+      "line": 100,
+      "message": "'PASSWORD' detected in this expression, review this potentially hard-coded password.",
+      "creationDate": "2025-10-27T15:32:42+0000",
+      "updateDate": "2025-10-27T21:52:24+0000",
+      "ruleKey": "java:S2068"
+    },
+    {
+      "key": "AZoQjygVzHfDjGKH3iO6",
+      "component": "SonarSource_sonarqube-mcp-server:src/main/java/org/sonarsource/sonarqube/mcp/transport/McpSecurityFilter.java",
+      "project": "SonarSource_sonarqube-mcp-server",
+      "securityCategory": "insecure-conf",
+      "vulnerabilityProbability": "LOW",
+      "status": "REVIEWED",
+      "resolution": "SAFE",
+      "line": 114,
+      "message": "Make sure that enabling CORS is safe here.",
+      "creationDate": "2025-10-23T10:10:42+0000",
+      "updateDate": "2026-04-30T14:40:55+0000",
+      "ruleKey": "java:S5122"
+    },
+    {
+      "key": "AZbE8b7wBjDStgx37x47",
+      "component": "SonarSource_sonarqube-mcp-server",
+      "project": "SonarSource_sonarqube-mcp-server",
+      "securityCategory": "others",
+      "vulnerabilityProbability": "LOW",
+      "status": "REVIEWED",
+      "resolution": "SAFE",
+      "message": "Dependencies are not verified because the \"verification-metadata.xml\" file is missing. Make sure it is safe here.",
+      "creationDate": "2025-05-12T10:41:20+0000",
+      "updateDate": "2025-05-12T14:36:54+0000",
+      "ruleKey": "kotlin:S6474"
+    }
+  ]
+}

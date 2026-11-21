@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.2.0 (unreleased)
+
+### Added
+
+- **Quality gate conditions** query: one row per condition of each project's
+  quality gate, with its value and what the gate requires, so a dashboard can
+  show why a gate failed. A switch keeps only the failed conditions.
+- **Security hotspots** query: the hotspots of the selected projects, highest
+  review priority first, filtered by review status, with a link to each.
+- **Pull requests** query: the pull requests SonarQube has analysed, with
+  their quality gate. Metric history, current metrics, issues, issue counts,
+  quality gate conditions and hotspots can look at one pull request instead
+  of a branch. Needs SonarQube Developer Edition or higher, or SonarQube
+  Cloud.
+- Project tags: the **Projects** query and the Projects template variable can
+  be limited to projects that have one of the chosen tags, so one dashboard
+  can serve each team.
+- Template variable for the pull requests of a project.
+
 ## 0.1.1 (2026-11-21)
 
 ### Changed

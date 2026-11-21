@@ -125,7 +125,21 @@ func TestParseQueryDefaults(t *testing.T) {
 	if err != nil || q.GroupBy != "severities" {
 		t.Fatalf("%+v, %v", q, err)
 	}
-	for _, typ := range []string{"projects", "metrics"} {
+	q, err = parse(t, `{"queryType":"hotspots","projects":["p"]}`)
+	if err != nil || q.HotspotStatus != HotspotsToReview || q.Limit != DefaultIssueLimit {
+		t.Fatalf("%+v, %v", q, err)
+	}
+	// A pull request may be written the way people say it.
+	q, err = parse(t, `{"queryType":"qualityGate","pullRequest":" #763 ","failedOnly":true}`)
+	if err != nil || q.PullRequest != "763" || !q.FailedOnly || len(q.Projects) != 0 {
+		t.Fatalf("%+v, %v", q, err)
+	}
+	// Tags are lower case in SonarQube; a multi-value variable arrives as one entry.
+	q, err = parse(t, `{"queryType":"projects","tags":["Payments, c++","payments",".net"]}`)
+	if err != nil || strings.Join(q.Tags, "|") != "payments|c++|.net" {
+		t.Fatalf("%+v, %v", q, err)
+	}
+	for _, typ := range []string{"projects", "metrics", "qualityGate"} {
 		if _, err := parse(t, `{"queryType":"`+typ+`"}`); err != nil {
 			t.Errorf("%s: %v", typ, err)
 		}
@@ -162,6 +176,16 @@ func TestParseQueryInvalid(t *testing.T) {
 		{"measures without metric", `{"queryType":"measures"}`, "choose at least one metric"},
 		{"analyses without project", `{"queryType":"analyses"}`, "choose at least one project"},
 		{"branches without project", `{"queryType":"branches"}`, "choose at least one project"},
+		{"hotspots without project", `{"queryType":"hotspots"}`, "choose at least one project"},
+		{"pull requests without project", `{"queryType":"pullRequests"}`, "choose at least one project"},
+		{"bad hotspot status", `{"queryType":"hotspots","projects":["p"],"hotspotStatus":"maybe"}`, "unknown hotspot status filter"},
+		{"hotspot limit too high", `{"queryType":"hotspots","projects":["p"],"limit":10001}`, "between 1 and 10000"},
+		{"branch and pull request", `{"queryType":"issues","branch":"main","pullRequest":"12"}`, "choose a branch or a pull request, not both"},
+		{"parameter injection in pull request", `{"queryType":"issues","pullRequest":"1&branch=x"}`, "is not a valid pull request"},
+		{"unresolved pull request variable", `{"queryType":"issues","pullRequest":"$pr"}`, "looks like a dashboard variable"},
+		{"filter injection in tag", `{"queryType":"projects","tags":["a) OR tags IN (b"]}`, "is not a valid tag"},
+		{"quoted tag", `{"queryType":"projects","tags":["\"x\""]}`, "is not a valid tag"},
+		{"unresolved tag variable", `{"queryType":"projects","tags":["$team"]}`, "looks like a dashboard variable"},
 		{"unresolved variable", `{"projects":["$project"],"metrics":["coverage"]}`, "looks like a dashboard variable"},
 		{"unresolved braces variable", `{"projects":["p"],"metrics":["${metric}"]}`, "looks like a dashboard variable"},
 		{"parameter injection in project", `{"projects":["a&organization=b"],"metrics":["coverage"]}`, "is not a valid project"},

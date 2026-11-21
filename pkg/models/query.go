@@ -24,6 +24,13 @@ const (
 	// QueryAnalyses returns analyses and their events (new versions, quality
 	// gate changes), for tables and annotations.
 	QueryAnalyses QueryType = "analyses"
+	// QueryQualityGate returns the conditions of each project's quality gate
+	// with their thresholds and actual values.
+	QueryQualityGate QueryType = "qualityGate"
+	// QueryHotspots returns a list of security hotspots.
+	QueryHotspots QueryType = "hotspots"
+	// QueryPullRequests returns the pull requests of the selected projects.
+	QueryPullRequests QueryType = "pullRequests"
 	// QueryProjects returns the list of projects.
 	QueryProjects QueryType = "projects"
 	// QueryMetrics returns the metrics the server knows (for variables).
@@ -53,6 +60,15 @@ const (
 	ResolutionAll      Resolution = "all"
 )
 
+// HotspotStatus filters security hotspots by review status.
+type HotspotStatus string
+
+const (
+	HotspotsToReview HotspotStatus = "toReview"
+	HotspotsReviewed HotspotStatus = "reviewed"
+	HotspotsAll      HotspotStatus = "all"
+)
+
 // QueryModel is one query as saved in a dashboard. Mirrors src/types.ts.
 type QueryModel struct {
 	QueryType QueryType `json:"queryType"`
@@ -61,6 +77,9 @@ type QueryModel struct {
 	Projects []string `json:"projects"`
 	Metrics  []string `json:"metrics"`
 	Branch   string   `json:"branch"`
+	// PullRequest is a pull request's key (usually its number). A query is
+	// about the main branch, a branch or a pull request, never two of them.
+	PullRequest string `json:"pullRequest"`
 
 	// Issue filters.
 	Severities     []string   `json:"severities"`
@@ -73,6 +92,13 @@ type QueryModel struct {
 
 	// Categories filters analysis events (VERSION, QUALITY_GATE, ...).
 	Categories []string `json:"categories"`
+
+	// Tags narrows the list of projects to those with one of these tags.
+	Tags []string `json:"tags"`
+	// HotspotStatus filters security hotspots.
+	HotspotStatus HotspotStatus `json:"hotspotStatus"`
+	// FailedOnly keeps only the quality gate conditions that failed.
+	FailedOnly bool `json:"failedOnly"`
 }
 
 // ErrInvalidQuery wraps every query validation failure.
@@ -89,6 +115,11 @@ var (
 	metricKeyPattern  = regexp.MustCompile(`^[A-Za-z0-9_]{1,64}$`)
 	// Branch names are free-form in Git; exclude only what cannot be one.
 	branchPattern = regexp.MustCompile(`^[^\s,\x00-\x1f\x7f]{1,255}$`)
+	// Pull request keys are numbers on most platforms; allow the characters
+	// an identifier may have.
+	pullRequestPattern = regexp.MustCompile(`^[A-Za-z0-9._\-]{1,100}$`)
+	// Project tags: SonarQube allows lower-case letters, digits and + - # .
+	tagPattern = regexp.MustCompile(`^[a-z0-9+\-#.]{1,100}$`)
 
 	severities = set("INFO", "MINOR", "MAJOR", "CRITICAL", "BLOCKER")
 	issueTypes = set("BUG", "VULNERABILITY", "CODE_SMELL")
@@ -133,9 +164,25 @@ func ParseQuery(raw json.RawMessage) (*QueryModel, error) {
 	if q.Categories, err = cleanList(q.Categories, "event category", 10, func(s string) bool { return categories[s] }, true); err != nil {
 		return nil, err
 	}
+	for i, tag := range q.Tags {
+		q.Tags[i] = strings.ToLower(tag)
+	}
+	if q.Tags, err = cleanList(q.Tags, "tag", 50, func(s string) bool { return tagPattern.MatchString(s) }, false); err != nil {
+		return nil, err
+	}
 	q.Branch = strings.TrimSpace(q.Branch)
 	if q.Branch != "" && !branchPattern.MatchString(q.Branch) {
 		return nil, badQuery("%q is not a valid branch name", q.Branch)
+	}
+	q.PullRequest = strings.TrimPrefix(strings.TrimSpace(q.PullRequest), "#")
+	if strings.HasPrefix(q.PullRequest, "$") {
+		return nil, badQuery("the pull request %q looks like a dashboard variable that has no value here", q.PullRequest)
+	}
+	if q.PullRequest != "" && !pullRequestPattern.MatchString(q.PullRequest) {
+		return nil, badQuery("%q is not a valid pull request: enter its number", truncate(q.PullRequest, 60))
+	}
+	if q.Branch != "" && q.PullRequest != "" {
+		return nil, badQuery("choose a branch or a pull request, not both")
 	}
 
 	switch q.QueryType {
@@ -172,10 +219,29 @@ func ParseQuery(raw json.RawMessage) (*QueryModel, error) {
 		case q.Limit < 0 || q.Limit > MaxIssueLimit:
 			return nil, badQuery("the issue limit must be between 1 and %d (SonarQube returns at most the first %d issues of a search)", MaxIssueLimit, MaxIssueLimit)
 		}
-	case QueryAnalyses, QueryBranches:
+	case QueryHotspots:
+		// SonarQube lists hotspots one project at a time.
 		if len(q.Projects) == 0 {
 			return nil, badQuery("choose at least one project")
 		}
+		switch q.HotspotStatus {
+		case "":
+			q.HotspotStatus = HotspotsToReview
+		case HotspotsToReview, HotspotsReviewed, HotspotsAll:
+		default:
+			return nil, badQuery("unknown hotspot status filter %q", q.HotspotStatus)
+		}
+		switch {
+		case q.Limit == 0:
+			q.Limit = DefaultIssueLimit
+		case q.Limit < 0 || q.Limit > MaxIssueLimit:
+			return nil, badQuery("the limit must be between 1 and %d", MaxIssueLimit)
+		}
+	case QueryAnalyses, QueryBranches, QueryPullRequests:
+		if len(q.Projects) == 0 {
+			return nil, badQuery("choose at least one project")
+		}
+	case QueryQualityGate:
 	case QueryProjects, QueryMetrics:
 	default:
 		return nil, badQuery("unknown query type %q", q.QueryType)

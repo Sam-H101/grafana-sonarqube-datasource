@@ -7,11 +7,15 @@ export type QueryType =
   | 'issues'
   | 'issueCounts'
   | 'analyses'
+  | 'qualityGate'
+  | 'hotspots'
+  | 'pullRequests'
   | 'projects'
   | 'metrics'
   | 'branches';
 
 export type Resolution = 'open' | 'resolved' | 'all';
+export type HotspotStatus = 'toReview' | 'reviewed' | 'all';
 
 /** One panel query. Mirrors pkg/models/query.go. */
 export interface SonarQuery extends DataQuery {
@@ -21,6 +25,8 @@ export interface SonarQuery extends DataQuery {
   /** Metric keys; an entry may be a dashboard variable. */
   metrics?: string[];
   branch?: string;
+  /** A pull request's key (usually its number), instead of a branch. */
+  pullRequest?: string;
   severities?: string[];
   types?: string[];
   resolution?: Resolution;
@@ -28,6 +34,11 @@ export interface SonarQuery extends DataQuery {
   limit?: number;
   groupBy?: string;
   categories?: string[];
+  /** Projects query: only projects with one of these tags. */
+  tags?: string[];
+  hotspotStatus?: HotspotStatus;
+  /** Quality gate conditions: only the ones that failed. */
+  failedOnly?: boolean;
 }
 
 /** Data source settings (jsonData). The URL is Grafana's standard url field. */
@@ -55,9 +66,11 @@ export interface SonarSecureJsonData {
 
 /** A template variable query. */
 export interface SonarVariableQuery extends DataQuery {
-  list?: 'projects' | 'metrics' | 'branches';
-  /** For branches: the project whose branches to list. */
+  list?: 'projects' | 'metrics' | 'branches' | 'pullRequests';
+  /** For branches and pull requests: the project whose ones to list. */
   project?: string;
+  /** For projects: only projects with one of these tags. */
+  tags?: string[];
 }
 
 export interface ProjectInfo {

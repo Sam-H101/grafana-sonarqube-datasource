@@ -19,6 +19,7 @@ import {
   defaultsFor,
   EVENT_CATEGORIES,
   GROUP_BYS,
+  HOTSPOT_STATUSES,
   ISSUE_TYPES,
   missing,
   QUERY_TYPES,
@@ -26,7 +27,7 @@ import {
   resolveKeys,
   SEVERITIES,
 } from '../query';
-import { MetricInfo, QueryType, Resolution, SonarOptions, SonarQuery } from '../types';
+import { HotspotStatus, MetricInfo, QueryType, Resolution, SonarOptions, SonarQuery } from '../types';
 
 type Props = QueryEditorProps<DataSource, SonarQuery, SonarOptions>;
 type Option = ComboboxOption<string>;
@@ -38,6 +39,18 @@ const resolutionOptions: Array<{ label: string; value: Resolution }> = [
   { label: 'Resolved', value: 'resolved' },
   { label: 'All', value: 'all' },
 ];
+
+const hotspotStatusOptions: Array<{ label: string; value: HotspotStatus }> = HOTSPOT_STATUSES.map((s) => ({ ...s }));
+
+/**
+ * Text being typed into a field that is saved when the field loses focus.
+ * It follows the saved value when that changes from outside.
+ */
+function useDraft(saved: string): [string, (text: string) => void] {
+  const [draft, setDraft] = useState({ base: saved, text: saved });
+  const text = draft.base === saved ? draft.text : saved;
+  return [text, (next) => setDraft({ base: saved, text: next })];
+}
 
 const queryTypeOptions: Option[] = QUERY_TYPES.map((t) => ({ value: t.value, label: t.label, description: t.description }));
 
@@ -79,6 +92,7 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource, data }: P
   const info = queryTypeInfo(query.queryType);
   const projects = useLoaded<ProjectList>(() => datasource.getProjects(), datasource);
   const metrics = useLoaded<MetricInfo[]>(() => datasource.getMetrics(), datasource);
+  const tags = useLoaded<string[]>(() => datasource.getTags(), datasource);
 
   // Dashboard variables can be chosen wherever a project or metric can.
   const variableOptions = useMemo<Option[]>(
@@ -100,8 +114,13 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource, data }: P
     [metrics.data, variableOptions]
   );
 
-  const [branch, setBranch] = useState({ base: query.branch ?? '', text: query.branch ?? '' });
-  const branchText = branch.base === (query.branch ?? '') ? branch.text : (query.branch ?? '');
+  const tagOpts = useMemo<Option[]>(
+    () => [...variableOptions, ...(tags.data ?? []).map((t) => ({ value: t, label: t, group: 'Tags' }))],
+    [tags.data, variableOptions]
+  );
+
+  const [branchText, setBranchText] = useDraft(query.branch ?? '');
+  const [pullRequestText, setPullRequestText] = useDraft(query.pullRequest ?? '');
   const [limit, setLimit] = useState<string | null>(null);
 
   // A query that has never been edited has no type yet: give it the defaults
@@ -133,6 +152,31 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource, data }: P
   const loadError = projects.error ?? metrics.error;
   const listed = projects.data?.projects.length ?? 0;
   const total = projects.data?.total ?? 0;
+
+  const limitField = (what: string) => (
+    <InlineField
+      label="Limit"
+      labelWidth={LABEL_WIDTH}
+      tooltip={`How many ${what} to return at most. SonarQube returns at most 10,000 per search.`}
+    >
+      <Input
+        id="sonar-limit"
+        type="number"
+        min={1}
+        max={10000}
+        width={14}
+        value={limit ?? String(query.limit ?? 100)}
+        onChange={(e) => setLimit(e.currentTarget.value)}
+        onBlur={() => {
+          const n = Math.min(10000, Math.max(1, parseInt(limit ?? '', 10) || query.limit || 100));
+          setLimit(null);
+          if (n !== query.limit) {
+            update({ limit: n });
+          }
+        }}
+      />
+    </InlineField>
+  );
 
   return (
     <Stack direction="column" gap={1}>
@@ -240,28 +284,7 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource, data }: P
                 />
               </InlineField>
             ) : (
-              <InlineField
-                label="Limit"
-                labelWidth={LABEL_WIDTH}
-                tooltip="The newest issues are returned first. SonarQube returns at most 10,000 issues per search."
-              >
-                <Input
-                  id="sonar-limit"
-                  type="number"
-                  min={1}
-                  max={10000}
-                  width={14}
-                  value={limit ?? String(query.limit ?? 100)}
-                  onChange={(e) => setLimit(e.currentTarget.value)}
-                  onBlur={() => {
-                    const n = Math.min(10000, Math.max(1, parseInt(limit ?? '', 10) || query.limit || 100));
-                    setLimit(null);
-                    if (n !== query.limit) {
-                      update({ limit: n });
-                    }
-                  }}
-                />
-              </InlineField>
+              limitField('issues (the newest first)')
             )}
             <InlineField
               label="Created in time range"
@@ -276,6 +299,56 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource, data }: P
             </InlineField>
           </Stack>
         </>
+      )}
+
+      {info.value === 'hotspots' && (
+        <Stack direction="row" gap={1} wrap="wrap">
+          <InlineField label="Status" labelWidth={LABEL_WIDTH} tooltip="Hotspots still to review, those already reviewed, or both.">
+            <RadioButtonGroup
+              id="sonar-hotspot-status"
+              options={hotspotStatusOptions}
+              value={query.hotspotStatus ?? 'toReview'}
+              onChange={(hotspotStatus) => update({ hotspotStatus })}
+            />
+          </InlineField>
+          {limitField('hotspots (the highest review priority first)')}
+        </Stack>
+      )}
+
+      {info.value === 'qualityGate' && (
+        <InlineField
+          label="Failed only"
+          labelWidth={LABEL_WIDTH}
+          tooltip="Only the conditions that failed. Off: every condition of the quality gate."
+        >
+          <InlineSwitch
+            id="sonar-failed-only"
+            value={!!query.failedOnly}
+            onChange={(e) => update({ failedOnly: e.currentTarget.checked })}
+          />
+        </InlineField>
+      )}
+
+      {info.value === 'projects' && (
+        <InlineField
+          label="Tags"
+          labelWidth={LABEL_WIDTH}
+          grow
+          tooltip="Only projects that have one of these tags. Leave empty for every project. You can also type a tag or choose a dashboard variable."
+        >
+          <MultiCombobox
+            id="sonar-tags"
+            width="auto"
+            minWidth={40}
+            maxWidth={100}
+            isClearable
+            createCustomValue
+            placeholder="Any tag"
+            options={tagOpts}
+            value={selected(query.tags, tagOpts)}
+            onChange={(opts) => update({ tags: values(opts).map((t) => t.trim()).filter(Boolean) })}
+          />
+        </InlineField>
       )}
 
       {info.value === 'analyses' && (
@@ -299,24 +372,46 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource, data }: P
       )}
 
       {info.branch && (
-        <InlineField
-          label="Branch"
-          labelWidth={LABEL_WIDTH}
-          tooltip="Leave empty for the main branch. Branch analysis needs SonarQube Developer Edition or higher, or SonarQube Cloud."
-        >
-          <Input
-            id="sonar-branch"
-            width={32}
-            placeholder="Main branch"
-            value={branchText}
-            onChange={(e) => setBranch({ base: query.branch ?? '', text: e.currentTarget.value })}
-            onBlur={() => {
-              if (branchText.trim() !== (query.branch ?? '')) {
-                update({ branch: branchText.trim() });
-              }
-            }}
-          />
-        </InlineField>
+        <Stack direction="row" gap={1} wrap="wrap">
+          <InlineField
+            label="Branch"
+            labelWidth={LABEL_WIDTH}
+            tooltip="Leave empty for the main branch. Branch analysis needs SonarQube Developer Edition or higher, or SonarQube Cloud."
+          >
+            <Input
+              id="sonar-branch"
+              width={32}
+              placeholder="Main branch"
+              value={branchText}
+              onChange={(e) => setBranchText(e.currentTarget.value)}
+              onBlur={() => {
+                if (branchText.trim() !== (query.branch ?? '')) {
+                  update({ branch: branchText.trim() });
+                }
+              }}
+            />
+          </InlineField>
+          {info.pullRequest && (
+            <InlineField
+              label="Pull request"
+              labelWidth={18}
+              tooltip="A pull request's number, instead of a branch. You can also use a dashboard variable. Pull request analysis needs SonarQube Developer Edition or higher, or SonarQube Cloud."
+            >
+              <Input
+                id="sonar-pull-request"
+                width={16}
+                placeholder="None"
+                value={pullRequestText}
+                onChange={(e) => setPullRequestText(e.currentTarget.value)}
+                onBlur={() => {
+                  if (pullRequestText.trim() !== (query.pullRequest ?? '')) {
+                    update({ pullRequest: pullRequestText.trim() });
+                  }
+                }}
+              />
+            </InlineField>
+          )}
+        </Stack>
       )}
 
       {hint && (

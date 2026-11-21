@@ -79,8 +79,7 @@ responses.
   `languages`, `assignees`, `author` (singular), `resolutions`, `statuses`.
   `files` needs a project filter on Server and does not exist on Cloud
   (`fileUuids` there).
-- Security hotspots are not issues; they have their own API
-  (`api/hotspots/search`).
+- Security hotspots are not issues; they have their own API (section 7).
 
 ## 5. Analyses and branches
 
@@ -92,7 +91,41 @@ responses.
   `isMain`, `type`, `status.qualityGateStatus`, `analysisDate`. Community
   Build has only the main branch.
 
-## 6. Seeding a test server
+## 6. Quality gate conditions, hotspots, tags and pull requests
+
+- **Quality gate conditions.** The measure `quality_gate_details` (type
+  `DATA`) holds the gate as evaluated in the latest analysis, as JSON:
+  `{"level":"ERROR","conditions":[{"metric","op","error","actual","level"}]}`.
+  `op` is the comparison that fails the condition (`LT`, `GT`). `actual` can
+  be an empty string on a pull request. It is on Server 9.9, Server 26.11
+  and Cloud, and `api/measures/search` returns it for many projects in one
+  request, which `api/qualitygates/project_status` cannot do.
+- **Hotspots.** `GET api/hotspots/search` needs one project. The parameter
+  is `projectKey` on Cloud and Server 9.9 and `project` on Server 26.11; each
+  ignores the other name, so the plugin sends both. `status` is `TO_REVIEW`
+  or `REVIEWED`; without it both are returned. `branch` and `pullRequest`
+  are accepted. There is no sort parameter.
+- **Server 26.11 has no hotspot rules.** `api/rules/search?facets=types`
+  counts 0 rules of type `SECURITY_HOTSPOT`; the former hotspot rules carry
+  the tag `former-hotspot` and are of type `VULNERABILITY`. The hotspot
+  search still answers, with an empty list. Server 9.9 has 43 Python hotspot
+  rules, and Cloud projects have hotspots.
+- **Tags.** `api/components/search_projects?filter=tags IN (a,b)` returns the
+  projects with one of the tags. The values must not be quoted: Cloud
+  matches nothing for `tags IN ("a","b")`. `api/project_tags/search` is not
+  limited to the organization on Cloud (it returns every public tag), so the
+  plugin offers the tags found on the listed projects instead.
+- **Pull requests.** `GET api/project_pull_requests/list?project=` returns
+  `key`, `title`, `branch`, `base`, `target`, `url`, `analysisDate` and
+  `status: {qualityGateStatus, bugs, vulnerabilities, codeSmells}`. On
+  Community Build (9.9 and 26.11) the endpoint does not exist: `404` with
+  `Unknown url : /api/project_pull_requests/list`.
+- `pullRequest=<key>` is accepted by `api/measures/component`,
+  `api/measures/search_history`, `api/issues/search` and
+  `api/hotspots/search` (checked on Cloud). `api/project_analyses/search`
+  ignores it and answers for the project.
+
+## 7. Seeding a test server
 
 - `sonar.projectDate` backdates an analysis; dates must increase from one
   analysis of a project to the next.

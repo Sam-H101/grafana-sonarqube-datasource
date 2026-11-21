@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -87,12 +88,14 @@ func (d *Datasource) metrics(ctx context.Context) ([]sonar.Metric, error) {
 //	GET /projects            {"projects":[{"key","name"}], "total": n}
 //	GET /metrics             [{"key","name","domain","type","description"}]
 //	GET /branches?project=k  [{"name","isMain"}]
+//	GET /tags                ["tag", ...] (the tags of the listed projects)
 func (d *Datasource) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
 	d.resOnce.Do(func() {
 		mux := http.NewServeMux()
 		mux.HandleFunc("GET /projects", d.handleProjects)
 		mux.HandleFunc("GET /metrics", d.handleMetrics)
 		mux.HandleFunc("GET /branches", d.handleBranches)
+		mux.HandleFunc("GET /tags", d.handleTags)
 		d.resHandler = httpadapter.New(mux)
 	})
 	return d.resHandler.CallResource(ctx, req, sender)
@@ -119,6 +122,33 @@ func (d *Datasource) handleProjects(w http.ResponseWriter, r *http.Request) {
 		items[i] = projectItem{Key: p.Key, Name: p.Name}
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"projects": items, "total": total})
+}
+
+// handleTags lists the tags of the listed projects. (SonarQube's own tag
+// search is not limited to one organization on SonarQube Cloud.)
+func (d *Datasource) handleTags(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel, ok := d.resourceContext(w, r)
+	if !ok {
+		return
+	}
+	defer cancel()
+	projects, _, err := d.projects(ctx)
+	if err != nil {
+		d.resourceError(w, err)
+		return
+	}
+	seen := map[string]bool{}
+	tags := []string{}
+	for _, p := range projects {
+		for _, t := range p.Tags {
+			if !seen[t] {
+				seen[t] = true
+				tags = append(tags, t)
+			}
+		}
+	}
+	sort.Strings(tags)
+	writeJSON(w, http.StatusOK, tags)
 }
 
 func (d *Datasource) handleMetrics(w http.ResponseWriter, r *http.Request) {

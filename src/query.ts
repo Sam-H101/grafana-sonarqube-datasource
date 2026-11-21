@@ -12,6 +12,8 @@ export interface QueryTypeInfo {
   projects: 'required' | 'optional' | 'none';
   metrics: boolean;
   branch: boolean;
+  /** Whether the type can look at a pull request instead of a branch. */
+  pullRequest: boolean;
   issueFilters: boolean;
 }
 
@@ -24,6 +26,7 @@ export const QUERY_TYPES: QueryTypeInfo[] = [
     projects: 'required',
     metrics: true,
     branch: true,
+    pullRequest: true,
     issueFilters: false,
   },
   {
@@ -33,6 +36,17 @@ export const QUERY_TYPES: QueryTypeInfo[] = [
     projects: 'optional',
     metrics: true,
     branch: true,
+    pullRequest: true,
+    issueFilters: false,
+  },
+  {
+    value: 'qualityGate',
+    label: 'Quality gate conditions',
+    description: 'Each condition of the quality gate with its value and what the gate requires: why a gate failed',
+    projects: 'optional',
+    metrics: false,
+    branch: true,
+    pullRequest: true,
     issueFilters: false,
   },
   {
@@ -42,6 +56,7 @@ export const QUERY_TYPES: QueryTypeInfo[] = [
     projects: 'optional',
     metrics: false,
     branch: true,
+    pullRequest: true,
     issueFilters: true,
   },
   {
@@ -51,7 +66,18 @@ export const QUERY_TYPES: QueryTypeInfo[] = [
     projects: 'optional',
     metrics: false,
     branch: true,
+    pullRequest: true,
     issueFilters: true,
+  },
+  {
+    value: 'hotspots',
+    label: 'Security hotspots',
+    description: 'A list of security hotspots, highest review priority first',
+    projects: 'required',
+    metrics: false,
+    branch: true,
+    pullRequest: true,
+    issueFilters: false,
   },
   {
     value: 'analyses',
@@ -60,15 +86,27 @@ export const QUERY_TYPES: QueryTypeInfo[] = [
     projects: 'required',
     metrics: false,
     branch: true,
+    pullRequest: false,
+    issueFilters: false,
+  },
+  {
+    value: 'pullRequests',
+    label: 'Pull requests',
+    description: 'The pull requests SonarQube has analysed, with their quality gate',
+    projects: 'required',
+    metrics: false,
+    branch: false,
+    pullRequest: false,
     issueFilters: false,
   },
   {
     value: 'projects',
     label: 'Projects',
-    description: 'The projects the token can see',
+    description: 'The projects the token can see, or those with a tag',
     projects: 'none',
     metrics: false,
     branch: false,
+    pullRequest: false,
     issueFilters: false,
   },
 ];
@@ -103,6 +141,12 @@ export const GROUP_BYS = [
   { value: 'resolutions', label: 'Resolution' },
   { value: 'statuses', label: 'Status' },
 ];
+
+export const HOTSPOT_STATUSES = [
+  { value: 'toReview', label: 'To review' },
+  { value: 'reviewed', label: 'Reviewed' },
+  { value: 'all', label: 'All' },
+] as const;
 
 export const EVENT_CATEGORIES = [
   { value: 'VERSION', label: 'New version' },
@@ -154,6 +198,18 @@ export function defaultsFor(type: QueryType, query: SonarQuery): SonarQuery {
       next.limit = next.limit ?? 100;
     }
   }
+  if (type === 'hotspots') {
+    next.hotspotStatus = next.hotspotStatus ?? 'toReview';
+    next.limit = next.limit ?? 100;
+  }
+  // A branch or pull request does not carry over to a type that has no such
+  // field, where it could not be seen or cleared.
+  if (!info.branch) {
+    delete next.branch;
+  }
+  if (!info.pullRequest) {
+    delete next.pullRequest;
+  }
   if (type === 'analyses' && !next.categories) {
     next.categories = ['VERSION', 'QUALITY_GATE'];
   }
@@ -168,6 +224,9 @@ export function missing(query: SonarQuery): string | null {
   }
   if (info.metrics && !query.metrics?.length) {
     return 'Choose at least one metric.';
+  }
+  if (info.pullRequest && query.branch?.trim() && query.pullRequest?.trim()) {
+    return 'Choose a branch or a pull request, not both.';
   }
   return null;
 }
@@ -204,8 +263,12 @@ export function variableToQuery(variable: SonarVariableQuery, replace: (v: strin
       return { refId, queryType: 'metrics' };
     case 'branches':
       return { refId, queryType: 'branches', projects: variable.project ? [replace(variable.project)] : [] };
-    default:
-      return { refId, queryType: 'projects' };
+    case 'pullRequests':
+      return { refId, queryType: 'pullRequests', projects: variable.project ? [replace(variable.project)] : [] };
+    default: {
+      const tags = expandList(variable.tags, replace);
+      return tags.length ? { refId, queryType: 'projects', tags } : { refId, queryType: 'projects' };
+    }
   }
 }
 

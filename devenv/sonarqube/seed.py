@@ -62,6 +62,7 @@ PROJECTS = {
     "demo:legacy-billing": {
         "name": "Legacy Billing",
         "tags": ["backend", "legacy"],
+        "review_hotspot": True,
         "runs": [
             (56, "7.3", 9, 3, 15, 3, 12, 4),
             (7, "7.4", 9, 4, 16, 3, 10, 4),
@@ -162,6 +163,9 @@ BUG = '''def check_{i}(value):
 VULN = '''def fetch_{i}(url):
     return requests.get(url, verify=False)
 '''
+# A hard-coded IP address is a security hotspot on SonarQube 9.9. Community
+# Build 26.11 has no hotspot rules at all (the former ones, such as weak
+# hashing, are vulnerabilities there), so this adds nothing on it.
 HOTSPOT = '''def connect_{i}():
     host = "192.168.10.{i}"
     return hashlib.sha256(host.encode()).hexdigest()
@@ -273,6 +277,24 @@ def keep_closed_issues():
         sys.exit(f"could not change the closed-issue retention: {code} {body}")
 
 
+def review_one_hotspot(key):
+    """Mark the project's first hotspot as reviewed and safe, so there is
+    something to see under each review status."""
+    # The project parameter is "projectKey" before Server 10.4 and "project"
+    # after; each version ignores the other name.
+    code, body = api("api/hotspots/search", {"projectKey": key, "project": key, "ps": 100})
+    hotspots = body.get("hotspots", []) if code == 200 else []
+    if not hotspots:
+        return
+    first = sorted(hotspots, key=lambda h: (h.get("line", 0), h["key"]))[0]
+    api(
+        "api/hotspots/change_status",
+        {"hotspot": first["key"], "status": "REVIEWED", "resolution": "SAFE"},
+        method="POST",
+    )
+    log(f"{key}: marked one of {len(hotspots)} hotspots as safe")
+
+
 def main():
     wait_for_server()
     token = ensure_token()
@@ -295,6 +317,8 @@ def main():
             scan(key, spec["name"], version, date, root, token)
             log(f"{key} {version} ({days_ago}d ago) analysed in {time.time() - started:.0f}s")
         api("api/project_tags/set", {"project": key, "tags": ",".join(spec["tags"])}, method="POST")
+        if spec.get("review_hotspot"):
+            review_one_hotspot(key)
     (OUT / "ready").write_text(now.isoformat())
     log("done")
 

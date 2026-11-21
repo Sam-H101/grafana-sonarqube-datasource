@@ -72,7 +72,7 @@ func TestErrors(t *testing.T) {
 	c := client(t, f, sonar.Config{Token: "good"})
 
 	// An API error carries SonarQube's message.
-	_, err := c.MeasureHistory(ctx, "nope", []string{"coverage"}, "", time.Time{}, time.Time{})
+	_, err := c.MeasureHistory(ctx, "nope", []string{"coverage"}, sonar.Ref{}, time.Time{}, time.Time{})
 	var apiErr *sonar.APIError
 	if !errors.As(err, &apiErr) || !apiErr.NotFound() || apiErr.Message != "Component key 'nope' not found" {
 		t.Errorf("unknown project: %v", err)
@@ -173,7 +173,7 @@ func TestMeasureHistory(t *testing.T) {
 	c := client(t, f, sonar.Config{Token: "t"})
 	from := time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)
 	to := time.Date(2026, 11, 21, 12, 30, 0, 0, time.FixedZone("x", 3600))
-	hist, err := c.MeasureHistory(ctx, "demo:shop-api", []string{"coverage", "bugs"}, "release/1.0", from, to)
+	hist, err := c.MeasureHistory(ctx, "demo:shop-api", []string{"coverage", "bugs"}, sonar.Ref{Branch: "release/1.0"}, from, to)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,7 +197,7 @@ func TestMeasureHistoryPages(t *testing.T) {
 		page := r.URL.Query().Get("p")
 		_, _ = fmt.Fprintf(w, `{"paging":{"pageIndex":%s,"pageSize":1000,"total":2500},"measures":[{"metric":"bugs","history":[{"date":"2026-01-0%sT00:00:00+0000","value":"%s"}]}]}`, page, page, page)
 	}
-	hist, err := client(t, f, sonar.Config{Token: "t"}).MeasureHistory(ctx, "p", []string{"bugs"}, "", time.Time{}, time.Time{})
+	hist, err := client(t, f, sonar.Config{Token: "t"}).MeasureHistory(ctx, "p", []string{"bugs"}, sonar.Ref{}, time.Time{}, time.Time{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -219,7 +219,7 @@ func TestMeasures(t *testing.T) {
 	for i := range metrics {
 		metrics[i] = fmt.Sprintf("m%d", i)
 	}
-	if _, err := c.Measures(ctx, projects, metrics, ""); err != nil {
+	if _, err := c.Measures(ctx, projects, metrics, sonar.Ref{}); err != nil {
 		t.Fatal(err)
 	}
 	calls := f.Calls("api/measures/search")
@@ -235,7 +235,7 @@ func TestMeasures(t *testing.T) {
 
 	// With a branch, each project is asked for on its own, and a "new code"
 	// value is read from its period.
-	ms, err := c.Measures(ctx, []string{"a", "b"}, []string{"coverage", "new_coverage"}, "develop")
+	ms, err := c.Measures(ctx, []string{"a", "b"}, []string{"coverage", "new_coverage"}, sonar.Ref{Branch: "develop"})
 	if err != nil {
 		t.Fatal(err)
 	}

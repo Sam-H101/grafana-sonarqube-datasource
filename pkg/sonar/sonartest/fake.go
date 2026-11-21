@@ -156,8 +156,35 @@ func (f *Fake) serve(w http.ResponseWriter, r *http.Request) {
 		}
 		json(Fixture(f.prefix() + "history"))
 	case "api/measures/search":
+		if strings.Contains(q.Get("metricKeys"), "quality_gate_details") {
+			json(Fixture(f.prefix() + "gate"))
+			return
+		}
 		json(Fixture(f.prefix() + "measures"))
+	case "api/hotspots/search":
+		// The project parameter is "projectKey" on SonarQube Cloud (and on
+		// Server 9.9) and "project" on Server 26.11.
+		name := "project"
+		if f.Cloud {
+			name = "projectKey"
+		}
+		if q.Get(name) == "" {
+			Error(w, http.StatusBadRequest, fmt.Sprintf("A value must be provided for either parameter '%s' or parameter 'hotspots'", name))
+			return
+		}
+		json(Fixture(f.prefix() + "hotspots"))
+	case "api/project_pull_requests/list":
+		if !f.Cloud {
+			// Community Build has no pull request analysis.
+			Error(w, http.StatusNotFound, "Unknown url : /api/project_pull_requests/list")
+			return
+		}
+		json(Fixture("cloud_pull_requests"))
 	case "api/measures/component":
+		if strings.Contains(q.Get("metricKeys"), "quality_gate_details") {
+			json(fmt.Sprintf(`{"component":{"key":%q,"measures":[{"metric":"quality_gate_details","value":"{\"level\":\"ERROR\",\"conditions\":[{\"metric\":\"new_coverage\",\"op\":\"LT\",\"period\":1,\"error\":\"80\",\"actual\":\"61.5\",\"level\":\"ERROR\"},{\"metric\":\"reliability_rating\",\"op\":\"GT\",\"error\":\"1\",\"actual\":\"\",\"level\":\"OK\"}]}"}]}}`, q.Get("component")))
+			return
+		}
 		json(fmt.Sprintf(`{"component":{"key":%q,"measures":[{"metric":"coverage","value":"61.5"},{"metric":"new_coverage","period":{"index":1,"value":"12.0"}}]}}`, q.Get("component")))
 	case "api/issues/search":
 		if q.Get("components") != "" {

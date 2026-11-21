@@ -17,16 +17,26 @@ import { SonarQuery } from './types';
 const q = (patch: Partial<SonarQuery>): SonarQuery => ({ refId: 'A', ...patch });
 
 describe('query types', () => {
-  it('offers the six panel query types, history first', () => {
+  it('offers the nine panel query types, history first', () => {
     expect(QUERY_TYPES.map((t) => t.value)).toEqual([
       'measureHistory',
       'measures',
+      'qualityGate',
       'issues',
       'issueCounts',
+      'hotspots',
       'analyses',
+      'pullRequests',
       'projects',
     ]);
     expect(QUERY_TYPES.every((t) => t.label && t.description)).toBe(true);
+  });
+
+  // The backend refuses a pull request together with a branch, and
+  // SonarQube's analyses and pull request lists take neither.
+  it('offers a pull request only where a branch is offered', () => {
+    expect(QUERY_TYPES.filter((t) => t.pullRequest && !t.branch)).toEqual([]);
+    expect(QUERY_TYPES.filter((t) => !t.pullRequest).map((t) => t.value)).toEqual(['analyses', 'pullRequests', 'projects']);
   });
 
   it('falls back to metric history for a missing or unknown type', () => {
@@ -68,6 +78,20 @@ describe('defaultsFor', () => {
     expect(defaultsFor('analyses', q({}))).toMatchObject({ queryType: 'analyses', categories: ['VERSION', 'QUALITY_GATE'] });
   });
 
+  it('fills what the hotspot list needs, and leaves the quality gate as it is', () => {
+    expect(defaultsFor('hotspots', q({ projects: ['p'] }))).toMatchObject({ queryType: 'hotspots', hotspotStatus: 'toReview', limit: 100 });
+    expect(defaultsFor('hotspots', q({ hotspotStatus: 'reviewed', limit: 5 }))).toMatchObject({ hotspotStatus: 'reviewed', limit: 5 });
+    expect(defaultsFor('qualityGate', q({ projects: ['p'] }))).toEqual({ refId: 'A', queryType: 'qualityGate', projects: ['p'] });
+  });
+
+  it('drops a branch or pull request the new type has no field for', () => {
+    const from = q({ queryType: 'measures', metrics: ['bugs'], projects: ['p'], pullRequest: '12' });
+    expect(defaultsFor('issues', from).pullRequest).toBe('12');
+    expect(defaultsFor('analyses', from).pullRequest).toBeUndefined();
+    expect(defaultsFor('pullRequests', { ...from, pullRequest: undefined, branch: 'main' }).branch).toBeUndefined();
+    expect(defaultsFor('analyses', { ...from, pullRequest: undefined, branch: 'main' }).branch).toBe('main');
+  });
+
   it('gives a fresh query the table metrics when it becomes a table', () => {
     expect(defaultsFor('measures', q({ queryType: 'measureHistory', metrics: ['coverage'] })).metrics).toEqual([
       'alert_status',
@@ -94,6 +118,19 @@ describe('missing', () => {
     expect(missing(q({ queryType: 'measureHistory', projects: ['p'], metrics: [] }))).toBe('Choose at least one metric.');
     expect(missing(q({ queryType: 'measures', metrics: [] }))).toBe('Choose at least one metric.');
     expect(missing(q({ queryType: 'analyses' }))).toBe('Choose at least one project.');
+  });
+
+  it('asks for a project where SonarQube needs one', () => {
+    expect(missing(q({ queryType: 'hotspots' }))).toBe('Choose at least one project.');
+    expect(missing(q({ queryType: 'pullRequests' }))).toBe('Choose at least one project.');
+    expect(missing(q({ queryType: 'qualityGate' }))).toBeNull();
+  });
+
+  it('refuses a branch together with a pull request', () => {
+    const both = q({ queryType: 'issues', branch: 'main', pullRequest: '12' });
+    expect(missing(both)).toBe('Choose a branch or a pull request, not both.');
+    expect(missing({ ...both, branch: ' ' })).toBeNull();
+    expect(missing({ ...both, pullRequest: '' })).toBeNull();
   });
 
   it('is null when the query can run', () => {
@@ -171,6 +208,27 @@ describe('variableToQuery', () => {
   it('lists projects by default', () => {
     expect(variableToQuery({ refId: '' }, replace)).toEqual({ refId: 'variable', queryType: 'projects' });
     expect(variableToQuery({ refId: 'X', list: 'projects' }, replace)).toEqual({ refId: 'X', queryType: 'projects' });
+  });
+
+  it('lists the projects with a tag, which may be another variable', () => {
+    expect(variableToQuery({ refId: 'v', list: 'projects', tags: ['payments'] }, (v) => v)).toEqual({
+      refId: 'v',
+      queryType: 'projects',
+      tags: ['payments'],
+    });
+    const replace = (v: string) => (v === '$team' ? 'payments,checkout' : v);
+    expect(variableToQuery({ refId: 'v', tags: ['$team', 'shared'] }, replace).tags).toEqual(['payments', 'checkout', 'shared']);
+    // A variable with no value leaves no filter.
+    expect(variableToQuery({ refId: 'v', tags: ['$team'] }, () => '')).toEqual({ refId: 'v', queryType: 'projects' });
+  });
+
+  it('lists the pull requests of a project', () => {
+    expect(variableToQuery({ refId: 'v', list: 'pullRequests', project: '$project' }, () => 'demo:shop-api')).toEqual({
+      refId: 'v',
+      queryType: 'pullRequests',
+      projects: ['demo:shop-api'],
+    });
+    expect(variableToQuery({ refId: 'v', list: 'pullRequests' }, (v) => v).projects).toEqual([]);
   });
 
   it('lists metrics', () => {

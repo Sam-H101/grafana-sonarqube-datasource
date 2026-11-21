@@ -55,6 +55,8 @@ func (d *Datasource) explain(err error) problem {
 			return problem{backend.StatusUnauthorized, d.product() + " rejected the token. It may be mistyped, expired or revoked: " + tokenHelp, true}
 		}
 		return problem{backend.StatusUnauthorized, "This " + d.product() + " requires authentication. Enter a user token in the data source settings (create one in SonarQube under My Account > Security).", true}
+	case errors.Is(err, sonar.ErrNoPullRequests):
+		return problem{backend.StatusBadRequest, "This SonarQube does not analyse pull requests. That needs SonarQube Developer Edition or higher, or SonarQube Cloud.", true}
 	case errors.Is(err, sonar.ErrForbidden):
 		return problem{backend.StatusForbidden, "The token's user is not allowed to read this. Give that user the Browse permission on the projects you want to query.", true}
 	case errors.As(err, &apiErr):

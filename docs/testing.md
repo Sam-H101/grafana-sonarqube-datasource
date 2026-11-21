@@ -60,6 +60,11 @@ editor says when the latest analysis was.
 visualization to **Table**: one row per project, with the quality gate shown
 as Passed or Failed and project names linking to SonarQube.
 
+**Quality gate conditions.** Change **Query** to **Quality gate conditions**
+and the visualization to **Table**: each project's conditions, the failed
+ones first. Shop Web and Legacy Billing fail on **New Issues** (required: at
+most 0). Turn on **Failed only** to keep just those rows.
+
 **Issues.** Change **Query** to **Issues**. Filter by **Severity** or
 **Type**, switch **Status** between Open, Resolved and All, and turn on
 **Created in time range**. Each message links to the issue in SonarQube.
@@ -69,6 +74,20 @@ Severity, Type, Project or Rule. A bar chart suits it.
 
 **Analyses and events.** Change **Query** to **Analyses and events** and
 choose a project: one row per new version or quality gate change.
+
+**Projects by tag.** Change **Query** to **Projects** and choose the tag
+`backend` under **Tags**: Shop API and Legacy Billing remain. The same
+filter is on the Projects template variable.
+
+**Security hotspots and pull requests.** The local server is SonarQube
+Community Build, which has no hotspot rules in this version and does not
+analyse pull requests: **Security hotspots** is empty and says why, and
+**Pull requests** explains that it needs a paid edition or SonarQube Cloud.
+To see both with data, use the **SonarQube Cloud (public)** data source and
+project `SonarSource_sonarqube-mcp-server`: **Pull requests** lists its open
+pull requests, and **Security hotspots** with **Status** set to **All** lists
+its reviewed hotspots. Enter one of the pull request numbers in **Pull
+request** on a *Current metrics* query to see that pull request's values.
 
 **Errors.** In the Projects field, type a key that does not exist, such as
 `no:such`, and accept it: the panel shows SonarQube's own message. In the
