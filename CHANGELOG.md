@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.1 (2026-11-21)
+
+### Changed
+
+- The settings page shows the secure socks proxy setting without an
+  explanatory paragraph, as other data sources do.
+
+## 0.1.0 (not released)
 
 First version.
 

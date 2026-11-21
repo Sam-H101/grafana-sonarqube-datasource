@@ -17,7 +17,6 @@ import {
   Stack,
   Switch,
   Text,
-  TextLink,
 } from '@grafana/ui';
 import { CLOUD_REGIONS, Deployment, deploymentOf } from '../deployment';
 import { SonarOptions, SonarSecureJsonData } from '../types';
@@ -137,14 +136,6 @@ export function ConfigEditor(props: Props) {
       {!isCloud && config.secureSocksDSProxyEnabled && (
         <section>
           <Text element="h3">Private network</Text>
-          <Text element="p" color="secondary">
-            Turn this on when SonarQube is on a private network that Grafana cannot reach directly, for example with
-            Grafana Cloud and{' '}
-            <TextLink href="https://grafana.com/docs/grafana-cloud/connect-externally-hosted/private-data-source-connect/" external>
-              Private data source connect
-            </TextLink>
-            . Requests then go through Grafana&apos;s secure proxy to an agent on your network.
-          </Text>
           <SecureSocksProxySettings options={options} onOptionsChange={onOptionsChange} />
         </section>
       )}
