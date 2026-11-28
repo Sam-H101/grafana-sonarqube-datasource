@@ -1,8 +1,8 @@
 module github.com/Sam-H101/grafana-sonarqube-datasource
 
-go 1.26.11
+go 1.27.3
 
-require github.com/grafana/grafana-plugin-sdk-go v0.302.0
+require github.com/grafana/grafana-plugin-sdk-go v0.303.0
 
 require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
@@ -76,7 +76,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.1 // indirect
 	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
-	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/net v0.63.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/text v0.44.0 // indirect
 	google.golang.org/genproto v0.0.0-20210630183607-d20f26d13c79 // indirect
